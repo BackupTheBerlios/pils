@@ -243,9 +243,10 @@ class ircLog:
         for n in self.byNick.keys():
             if n != who:
                 n = n.replace( '[', '\[' ).replace( ']', '\]' ).replace( '|', '\|' )
-                if not self.patterns[ 'nicks' ].has_key( n ):
-                    self.patterns[ 'nicks' ][ n ] = re.compile( n, re.IGNORECASE )
-                cnt = len( self.patterns[ 'nicks' ][ n ].findall( what ) )
+#                if not self.patterns[ 'nicks' ].has_key( n ):
+#                    self.patterns[ 'nicks' ][ n ] = re.compile( n, re.IGNORECASE )
+#                cnt = len( self.patterns[ 'nicks' ][ n ].findall( what ) )
+                cnt = what.count( n )
                 if cnt > 0:
                     if self.nickRefs.has_key( n ):
                         cnt += self.nickRefs[ n ][ 'count' ]
