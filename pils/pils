@@ -77,7 +77,7 @@ def myTimeToTuple( t ):
 
 def daysDiffMyTime( t1, t2 ):
     if t1 < t2:
-        return diffMyTime( t2, t1 )
+        return daysDiffMyTime( t2, t1 )
     else:
         t1 = calendar.timegm( myTimeToTuple( t1 ) )
         t2 = calendar.timegm( myTimeToTuple( t2 ) )
