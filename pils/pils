@@ -682,6 +682,60 @@ class ircLog:
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+    def longestLines( self ):
+        """return a dict of the nick writing the longest lines
+           and the channel average
+        """
+        minMsgs = 10
+        amount  =  1
+        nicks   = {}
+        most    = {}
+        tl      =  0
+        tm      =  0
+        # map nick -> no. of posts
+        for k, v in self.byNick.items():
+            msgs = len( v )
+            tm += msgs
+            c = 0
+            for l in v:
+                c += len( l )
+            if msgs >= minMsgs:
+                nicks[ k ] = c / msgs
+        # fetch the first entry
+        n = nicks.popitem()
+        while n:
+            i = len( most )
+            if i == 0:
+                # the very first one ;)
+                most[ 1 ] = n
+            else:
+                while i > 0:
+                    # more posts?
+                    if n[ 1 ] > most[ i ][ 1 ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = n
+                        # shift to next
+                        i -= 1
+                    else:
+                        # possibly fill up the empty spaces
+                        if i < amount:
+                            most[ i+1 ] = n
+                        # break
+                        i = 0
+            # fetch next entry
+            if len( nicks ) > 0:
+                n = nicks.popitem()
+            else:
+                n = None
+        most[ 2 ] = list( ( self.channel, tl/tm ) )
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
     def mostActiveMinutes( self ):
         """which minutes were the most busy ones?
         """
@@ -1063,12 +1117,12 @@ Is %s stupid or just asking too many questions? %d%% of his/her messages contain
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="left" class="data" valign="top">
-The loudest one was %s, who yelled %d%% of the time!
+The loudest one was %s, who yelled %.1f%% of the time!
         </th>
     </tr>
     <tr>
         <td align="left" class="data" valign="top">
-Another old yeller was %s, who shouted %d%% of the time!
+Another old yeller was %s, who shouted %.1f%% of the time!
         </td>
     </tr>
 </table>
@@ -1084,12 +1138,12 @@ Another old yeller was %s, who shouted %d%% of the time!
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="left" class="data" valign="top">
-It seems that %s's shift-key is hanging: %d%% of the time he/she wrote UPPERCASE.
+It seems that %s's shift-key is hanging: %.1f%% of the time he/she wrote UPPERCASE.
         </th>
     </tr>
     <tr>
         <td align="left" class="data" valign="top">
-%s just forgot to deactivate his/her Caps-Lock. He/She wrote UPPERCASE %d%% of the time.
+%s just forgot to deactivate his/her Caps-Lock. He/She wrote UPPERCASE %.1f%% of the time.
         </td>
     </tr>
 </table>
@@ -1105,12 +1159,12 @@ It seems that %s's shift-key is hanging: %d%% of the time he/she wrote UPPERCASE
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="left" class="data" valign="top">
-%s brings happiness to the world. %d%% lines contained smiling faces. :)
+%s brings happiness to the world. %.1f%% lines contained smiling faces. :)
         </th>
     </tr>
     <tr>
         <td align="left" class="data" valign="top">
-%s isn't a sad person either, smiling %d%% of the time.
+%s isn't a sad person either, smiling %.1f%% of the time.
         </td>
     </tr>
 </table>
@@ -1126,17 +1180,37 @@ It seems that %s's shift-key is hanging: %d%% of the time he/she wrote UPPERCASE
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="left" class="data" valign="top">
-%s seems to be sad at the moment: %d%% lines contained sad faces. :(
+%s seems to be sad at the moment: %.1f%% lines contained sad faces. :(
         </th>
     </tr>
     <tr>
         <td align="left" class="data" valign="top">
-%s is also a sad person, crying %d%% of the time.
+%s is also a sad person, crying %.1f%% of the time.
         </td>
     </tr>
 </table>
 """ % ( s[ 1 ][ 0 ], s[ 1 ][ 1 ], s[ 2 ][ 0 ], s[ 2 ][ 1 ] )
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def longestLines( self ):
+        """see ircLog
+        """
+        l = ircLog.longestLines( self )
+        return """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
+    <tr>
+        <th align="left" class="data" valign="top">
+%s wrote the longest lines, averaging %.1f letters per line.
+        </th>
+    </tr>
+    <tr>
+        <td align="left" class="data" valign="top">
+%s average was %.1f letters per line.
+        </td>
+    </tr>
+</table>
+""" % ( l[ 1 ][ 0 ], l[ 1 ][ 1 ], l[ 2 ][ 0 ], l[ 2 ][ 1 ] )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -1162,6 +1236,7 @@ S O M E &nbsp; I N T E R E S T I N G &nbsp; N U M B E R S
 </table>
 """ % ( self.mostQuestions() + self.mostYelling() + self.mostShouting()
       + self.mostHappyFaces() + self.mostSadFaces()
+      + self.longestLines()
       )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
