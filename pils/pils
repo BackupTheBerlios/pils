@@ -216,7 +216,7 @@ class ircLog:
         self.patterns[ 'url' ]  = re.compile( "(([a-z]+://)|(www\.))([a-z0-9\-]+\.)+[a-z0-9\-]+((\.|/)\S+)*",
                                               re.IGNORECASE
                                             )
-        self.patterns[ 'word' ] = re.compile( "[a-z0-9]{3,}",
+        self.patterns[ 'word' ] = re.compile( "[a-z0-9]{5,}",
                                               re.IGNORECASE
                                             )
 
@@ -433,7 +433,7 @@ class ircLog:
             return """%s<a href="%s" target="_blank">%s</a>%s""" \
                  % ( what[ :m.start() ],
                      url,
-                     url,
+                     url[:80],
                      self.logUrls( who, what[ m.end(): ], when )
                    )
         else:
