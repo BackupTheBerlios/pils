@@ -38,12 +38,13 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 
-# try to get some more performance
-try:
-    import psyco
-    psyco.full()
-except:
-    pass
+# temporarily taken out
+## try to get some more performance
+#try:
+#    import psyco
+#    psyco.full()
+#except:
+#    pass
 
 
 # the necessary imports
