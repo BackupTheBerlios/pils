@@ -1053,24 +1053,24 @@ class ircLogHtml( ircLog ):
         """see ircLog
         """
         html = """
-<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="center" class="header_2" colspan="9">
-M O S T &nbsp; A C T I V E &nbsp; N I C K S
+%d &nbsp; M O S T &nbsp; A C T I V E &nbsp; N I C K S
         </th>
     </tr>
     <tr>
-        <th align="center" class="header_3">#</th>
+        <th align="center" class="header_3" width="15">#</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3">Nick</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3">Posts</th>
+        <th align="center" class="header_3" width="50">Posts</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3">Activity</th>
+        <th align="center" class="header_3" width="50">Activity</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3">Random Quote</th>
     </tr>
-"""
+""" % amount
         for k, v in ircLog.mostActiveNicks( self, amount ).items():
             html += """
     <tr>
@@ -1097,16 +1097,16 @@ M O S T &nbsp; A C T I V E &nbsp; N I C K S
            optionally an offset can be provided
         """
         html = """
-<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="center" class="header_2" colspan="9">
-N O T &nbsp; SO &nbsp; A C T I V E &nbsp; N I C K S
+%d &nbsp; N O T &nbsp; SO &nbsp; A C T I V E &nbsp; N I C K S
         </th>
     </tr>
     <tr>
         <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
-"""
+""" % amount
         i = 0
         for k, v in ircLog.mostActiveNicks( self, amount+offset ).items():
             if k > offset:
@@ -1716,10 +1716,10 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         """see ircLog
         """
         html = """
-<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="center" class="header_2" colspan="9">
-M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S
+%d &nbsp; M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S
         </th>
     </tr>
     <tr>
@@ -1733,7 +1733,7 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3" width="200">When</th>
     </tr>
-"""
+""" % amount
         for k, v in ircLog.mostReferencedNicks(self, amount ).items():
             html += """
     <tr>
@@ -1759,10 +1759,10 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S
         """see ircLog
         """
         html = """
-<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="center" class="header_2" colspan="9">
-M O S T &nbsp; R E F E R E N C E D &nbsp; U R L S
+%d &nbsp; M O S T &nbsp; R E F E R E N C E D &nbsp; U R L S
         </th>
     </tr>
     <tr>
@@ -1776,7 +1776,7 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; U R L S
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3" width="200">When</th>
     </tr>
-"""
+""" % amount
         for k, v in ircLog.mostReferencedUrls( self, amount ).items():
             html += """
     <tr>
