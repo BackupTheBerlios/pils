@@ -1320,7 +1320,7 @@ class ircLogHtml( ircLog ):
                 if i % 5 == 0:
                     html.append( """
     <tr>
-"""
+""" )
                 else:
                     html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
