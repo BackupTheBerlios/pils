@@ -602,7 +602,7 @@ class ircLog:
         """return a dict of the nicks asking the most questions,
            keys are the "activity"-rank
         """
-        minMsgs = 10
+        minMsgs = self.numOfMsgs / len( self.nicks )
         amount  =  2
         nicks   = {}
         most    = {}
@@ -649,7 +649,7 @@ class ircLog:
         """return a dict of the nicks yelling the most,
            keys are the "activity"-rank
         """
-        minMsgs = 10
+        minMsgs = self.numOfMsgs / len( self.nicks )
         amount  =  2
         nicks   = {}
         most    = {}
@@ -696,7 +696,7 @@ class ircLog:
         """return a dict of the nicks shouting the most,
            keys are the "activity"-rank
         """
-        minMsgs = 10
+        minMsgs = self.numOfMsgs / len( self.nicks )
         amount  =  2
         nicks   = {}
         most    = {}
@@ -743,7 +743,7 @@ class ircLog:
         """return a dict of the nicks sending the most happy faces,
            keys are the "activity"-rank
         """
-        minMsgs = 10
+        minMsgs = self.numOfMsgs / len( self.nicks )
         amount  =  2
         nicks   = {}
         most    = {}
@@ -790,7 +790,7 @@ class ircLog:
         """return a dict of the nicks sending the most sad faces,
            keys are the "activity"-rank
         """
-        minMsgs = 10
+        minMsgs = self.numOfMsgs / len( self.nicks )
         amount  =  2
         nicks   = {}
         most    = {}
@@ -837,7 +837,7 @@ class ircLog:
         """return a dict of the nick writing the longest lines
            and the channel average
         """
-        minMsgs = 10
+        minMsgs = self.numOfMsgs / len( self.nicks )
         amount  =  1
         nicks   = {}
         most    = {}
@@ -892,7 +892,7 @@ class ircLog:
         """return a dict of the nick writing the most words per lines
            and the channel average
         """
-        minMsgs = 10
+        minMsgs = self.numOfMsgs / len( self.nicks )
         amount  =  1
         nicks   = {}
         most    = {}
@@ -947,7 +947,7 @@ class ircLog:
         """return a dict of the nick who has writing the most words
            and the channel average
         """
-        minMsgs = 10
+        minMsgs = self.numOfMsgs / len( self.nicks )
         amount  =  1
         nicks   = {}
         most    = {}
