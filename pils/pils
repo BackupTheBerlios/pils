@@ -1294,52 +1294,18 @@ class ircLogHtml( ircLog ):
         msgs = self.nickQuotes( nick )
         if msgs:
             activity = {}
-            average  = self.numOfMsgs / len( self.nicks ) / 24.0 # / daysDiffMyTime( self.firstMsg, self.lastMsg ) + 1
-            if nick == 'nikl':
-                print 'avg: %s ( %s / %s )' % ( average, self.numOfMsgs, len( self.nicks ) )
+            average  = self.numOfMsgs / len( self.nicks ) / 24.0
             for i in range( 24 ):
                 activity[ i ] = 0
             total = len( msgs )
-            if nick == 'nikl':
-                print 'total: %s' % total
             for k in msgs.keys():
                 activity[ int( k[ 8:10 ] ) ] += 1
-#            html = """
-#<table align="center" border="0" cellpadding="0" cellspacing="0">
-
-#    <tr>
-#"""
             for i in range( 24 ):
-                h = math.ceil( activity[ i ] *20 / ( total + (total / average) ) )
-                if nick == 'nikl':
-                    print '%s: %s -> %s' % ( i, activity[ i ], h )
-                activity[ i ] = h
+                activity[ i ] = math.ceil( activity[ i ] *20 / ( total + (total / average) ) )
+
             return """
 <img src="%s" alt="" border="0" height="20" width="48" />
 """ % nickActivity( self.channel, nick, activity )
-
-#                if i > 0:
-#                    l = ( activity[ i ] + activity[ i-1 ] ) * 10 / total
-#                    html += """
-#        <td align="center" class="data" valign="bottom"><table align="center" border="0" cellpadding="0" cellspacing="0" width="1">
-#                <tr>
-#                    <td align="center" class="header_1"><img src="/gfx/pixel.gif" alt="" border="0" height="%d" width="1" /></td>
-#                </tr>
-#            </table></td>
-#""" % math.ceil( l + 2 )
-#                html += """
-#        <td align="center" class="data" valign="bottom"><table align="center" border="0" cellpadding="0" cellspacing="0" width="1">
-#                <tr>
-
-#                    <td align="center" class="header_3"><img src="/gfx/pixel.gif" alt="" border="0" height="%d" width="1" /></td>
-#                </tr>
-#            </table></td>
-#""" % math.ceil( h + 2 )
-#            return html + """
-#    </tr>
-#</table>
-#"""
-
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
