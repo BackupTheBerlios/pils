@@ -1310,7 +1310,7 @@ class ircLogHtml( ircLog ):
 #    <tr>
 #"""
             for i in range( 24 ):
-                h = activity[ i ] / total + (total / average)
+                h = activity[ i ] / ( total + (total / average) )
                 if nick == 'nikl':
                     print '%s: %s -> %s' % ( i, activity[ i ], h )
                 activity[ i ] = h
