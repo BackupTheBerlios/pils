@@ -48,7 +48,7 @@
 
 
 # the necessary imports
-import os, re, sys, math, time, string, random, calendar
+import os, re, sys, math, time, cPickle, string, random, calendar
 
 from pils.pilsImage import nickActivity
 
@@ -219,6 +219,39 @@ class ircLog:
         self.patterns[ 'word' ] = re.compile( "[a-z0-9]{3,}",
                                               re.IGNORECASE
                                             )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def dumpStats( self, filename ):
+        fh = open( filename, 'w' )
+        cPickle.dump( { 'channel'  : self.channel,
+                        'network'  : self.network,
+                        'generator': self.generator,
+                        'nicks'    : self.nicks,
+                        'byNick'   : self.byNick,
+                        'byIP'     : self.byIP,
+                        'byCountry': self.byCountry,
+                        'byMinute' : self.byMinute,
+                        'byHour'   : self.byHour,
+                        'byDay'    : self.byDay,
+                        'byWeekday': self.byWeekday,
+                        'byMonth'  : self.byMonth,
+                        'byYear'   : self.byYear,
+                        'urls'     : self.urls,
+                        'nickRefs' : self.nickRefs,
+                        'questions': self.questions,
+                        'yelling'  : self.yelling,
+                        'shouting' : self.shouting,
+                        'happy'    : self.happy,
+                        'sad'      : self.sad,
+                        'words'    : self.words,
+                        'numOfMsgs': self.numOfMsgs,
+                        'firstMsg' : self.firstMsg,
+                        'lastMsg'  : self.lastMsg
+                      },
+                      fh,
+                      HIGHEST_PROTOCOL )
+        fh.close()
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -2266,6 +2299,7 @@ usage: %s input output
     out.write( str( il ) )
     out.close()
 
+    il.dumpStats( '%s.dump' % il.channel )
 
 
 ### eof ###
