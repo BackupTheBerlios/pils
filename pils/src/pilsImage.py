@@ -25,7 +25,7 @@ class pilsImage:
         """
         self.img    = Image.new( 'L', ( width, height ), bgcolor )
         self.height = height
-        sef.width   = width
+        self.width   = width
 
     def draw( self, x, y, color=0 ):
         """ draw a pixel - if the coordinates are correct
