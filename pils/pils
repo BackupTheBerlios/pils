@@ -348,7 +348,7 @@ class ircLog:
         m = self.patterns[ 'word' ].search( what )
         if m:
             cnt = 1
-            w =  m.group()
+            w =  m.group().lower()
             if self.words.has_key( w ):
                 cnt += self.words[ w ][ 'count' ]
             self.words[ w ] = { 'count': cnt,
