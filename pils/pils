@@ -2116,7 +2116,7 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="right" class="data" valign="top" width="200">%s</td>
     </tr>
-""" % ( k, v[0], v[0][:80], v[1], self.urls[ v[0] ][ 'nick' ], formatMyTime( self.urls[ v[0] ][ 'time' ] ) ) )
+""" % ( k, v[0], v[0][:75], v[1], self.urls[ v[0] ][ 'nick' ], formatMyTime( self.urls[ v[0] ][ 'time' ] ) ) )
         html.append( "</table>" )
         return ''.join( html )
 
