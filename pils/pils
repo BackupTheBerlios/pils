@@ -4,7 +4,7 @@
 # pils - Python Irc Log Stats ( http://pils.berlios.de )
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 #
-# a tiny python script to analyze logfiles of irc-conversations and 
+# a tiny python script to analyze logfiles of irc-conversations and
 # generate corresponding html-output
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -30,7 +30,7 @@
 #   - distutils setup
 #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# (c) 2003 - Nikolaus Schlemm
+# (c) 2003-2004 - Nikolaus Schlemm
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -85,6 +85,7 @@ class ircLog:
         self.channel   = channel
         self.network   = network
         self.generator = generator
+        self.nicks     = []
         self.byNick    = {}
         self.byIP      = {}
         self.byCountry = {}
@@ -155,7 +156,6 @@ class ircLog:
     def initPatterns( self ):
         """initialise the regex-patterns
         """
-        self.patterns[ 'nicks' ] = {}
         self.patterns[ 'url' ]   = re.compile( "(([a-z]*://)|(www\.))([a-z0-9\-]+\.)+[a-z0-9\-]+((\.|/)\S+)*",
                                                re.IGNORECASE
                                              )
@@ -217,6 +217,8 @@ class ircLog:
     def log( self, who, what, when ):
         """log one message
         """
+        if not who in self.nicks:
+            self.nicks.append( who )
         if not self.byNick.has_key( who ):
             self.byNick[ who ] = {}
         while self.byNick[ who ].has_key( when ):
@@ -240,7 +242,7 @@ class ircLog:
         """log the referenced nick in a message
            this one DEFINETELY needs serious improvement!!!
         """
-        for n in self.byNick.keys():
+        for n in self.nicks:
             if n != who:
 #                n = n.replace( '[', '\[' ).replace( ']', '\]' ).replace( '|', '\|' )
 #                if not self.patterns[ 'nicks' ].has_key( n ):
@@ -258,7 +260,7 @@ class ircLog:
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def logUrls( self, who, what, when ):
-        """log the urls mentioned in a message and link them 
+        """log the urls mentioned in a message and link them
         """
         m = self.patterns[ 'url' ].search( what )
         if m:
@@ -344,7 +346,7 @@ class ircLog:
     def nickQuotes( self, who ):
         """return a dictionary of a what a certain nick said
         """
-        if self.byNick.has_key( who ):
+        if who in self.nicks:
             return self.byNick[ who ]
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -352,19 +354,19 @@ class ircLog:
     def randomNickQuote( self, who ):
         """pick a random quote of what a certain nick said
         """
-        if self.byNick.has_key( who ):
-            k = self.byNick[ who ].keys()
-            k = k[ random.randrange( len( k ) ) ]
-            return self.byNick[ who ][ k ]
+        if who in self.nicks:
+#            k = self.byNick[ who ].keys()
+#            k = k[ random.randrange( len( k ) ) ]
+            return random.choice( self.nickQuotes( who ) ) # self.byNick[ who ][ k ]
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def randomNick( self ):
         """randomly select a nick
         """
-        if len( self.byNick ) > 0:
-            k = self.byNick.keys()
-            return k[ random.randrange( len( k ) ) ]
+        if len( self.nicks ) > 0:
+#            k = self.byNick.keys()
+            return random.choice( self.nicks ) # k[ random.randrange( len( k ) ) ]
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -657,7 +659,7 @@ class ircLogHtml( ircLog ):
     </tr>
 </table>
 """
-	    
+
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -668,7 +670,7 @@ class ircLogHtml( ircLog ):
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <th align="center" class="header_2" colspan="9">
-M O S T &nbsp; A C T I V E &nbsp; N I C K S 
+M O S T &nbsp; A C T I V E &nbsp; N I C K S
         </th>
     </tr>
     <tr>
@@ -739,7 +741,7 @@ M O S T &nbsp; A C T I V E &nbsp; N I C K S
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <th align="center" class="header_2" colspan="13">
-M O S T &nbsp; A C T I V E &nbsp; W E E K D A Y S 
+M O S T &nbsp; A C T I V E &nbsp; W E E K D A Y S
         </th>
     </tr>
     <tr>
@@ -810,7 +812,7 @@ M O S T &nbsp; A C T I V E &nbsp; W E E K D A Y S
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <th align="center" class="header_2" colspan="119">
-M O S T &nbsp; A C T I V E &nbsp; M I N U T E S 
+M O S T &nbsp; A C T I V E &nbsp; M I N U T E S
         </th>
     </tr>
     <tr>
@@ -1091,7 +1093,7 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <th align="center" class="header_2" colspan="9">
-M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S 
+M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S
         </th>
     </tr>
     <tr>
@@ -1134,7 +1136,7 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <th align="center" class="header_2" colspan="9">
-M O S T &nbsp; R E F E R E N C E D &nbsp; U R L S 
+M O S T &nbsp; R E F E R E N C E D &nbsp; U R L S
         </th>
     </tr>
     <tr>
@@ -1311,7 +1313,7 @@ usage: %s input output
 
     # initialise the randomizer
     random.seed()
-    
+
     # read in the logfile
     il = ircLogHtml( sys.argv[ 1 ], sys.argv[ 2 ], sys.argv[ 3 ], sys.argv[ 4 ] )
 
