@@ -81,7 +81,7 @@ def countWords( s ):
     return w
 
 def splitWords( str ):
-    minLength = 3
+    minLength = 0
     words     = []
     str       += " "
     w         = ""
