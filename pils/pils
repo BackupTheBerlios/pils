@@ -73,11 +73,11 @@ def formatMyTime( t ):
 def countWords( s ):
     w = 0
     s = s.strip()
-    if len( s ) > 0:
-        w += 1
     while s.count( ' ' ) > 0:
         w += 1
-        s = s[ s.index( ' ' ) ].strip()
+        s = s[ s.index( ' ' ): ].strip()
+    if len( s ) > 0:
+        w += 1
     return w
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
