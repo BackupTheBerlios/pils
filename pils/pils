@@ -127,6 +127,9 @@ class ircLog:
     """ the base class for an irc log-analyzer
     """
 
+    # if you need to filter out any nicks, put them in this list
+    ignoredNicks = ()
+
     def __init__( self, channel, network, generator, path=None ):
         """the constructor - mostly setting up instance variables
         """
@@ -346,6 +349,29 @@ class ircLog:
                     elif msg[0] == "-":
                         pass
         self.dumpStats( dumpFile )
+        # remove them after writing the dump-file
+        self.removeIgnoredNicks()
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def removeIgnoredNicks( self ):
+        for n in self.ignoredNicks:
+            if n in self.nicks:
+                self.nicks.remove( n )
+            if self.byNick.has_key( n ):
+                del( self.byNick[ n ] )
+            if self.nickRefs.has_key( n ):
+                del( self.nickRefs[ n ] )
+            if self.questions.has_key( n ):
+                del( self.questions[ n ] )
+            if self.shouting.has_key( n ):
+                del( self.shouting[ n ] )
+            if self.yelling.has_key( n ):
+                del( self.yelling[ n ] )
+            if self.happy.has_key( n ):
+                del( self.happy[ n ] )
+            if self.sad.has_key( n ):
+                del( self.sad[ n ] )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -944,7 +970,7 @@ class ircLog:
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def mostWords( self ):
-        """return a dict of the nick who has writing the most words
+        """return a dict of the nick who has writtens the most words
            and the channel average
         """
         minMsgs = self.numOfMsgs / len( self.nicks )
