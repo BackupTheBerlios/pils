@@ -99,6 +99,10 @@ class ircLog:
         self.patterns  = {}
         self.nickRefs  = {}
         self.questions = {}
+        self.yelling   = {}
+        self.shouting  = {}
+        self.happy     = {}
+        self.sad       = {}
         # initialise the internal variables
         self.numOfMsgs = 0
         self.initMinutes()
@@ -226,6 +230,22 @@ class ircLog:
             if not self.questions.has_key( who ):
                 self.questions[ who ] = 0
             self.questions[ who ] += 1
+        if what.count( "!" ) > 0:
+            if not self.yelling.has_key( who ):
+                self.yelling[ who ] = 0
+            self.yelling[ who ] += 1
+        if what.isupper():
+            if not self.shouting.has_key( who ):
+                self.shouting[ who ] = 0
+            self.shouting[ who ] += 1
+        if what.count( ":)" ) > 0:
+            if not self.happy.has_key( who ):
+                self.happy[ who ] = 0
+            self.happy[ who ] += 1
+        if what.count( ":(" ) > 0:
+            if not self.sad.has_key( who ):
+                self.sad[ who ] = 0
+            self.sad[ who ] += 1
         while self.byNick[ who ].has_key( when ):
             when = "%s%s" % ( when[ :-6 ],
                               string.zfill( ( int( when[ -6: ] ) + 1 ),
@@ -437,6 +457,194 @@ class ircLog:
         most    = {}
         # map nick -> no. of posts
         for k, v in self.questions.items():
+            msgs = len( self.byNick[ k ] )
+            if msgs >= minMsgs:
+                nicks[ k ] = 100 * v / msgs
+        # fetch the first entry
+        n = nicks.popitem()
+        while n:
+            i = len( most )
+            if i == 0:
+                # the very first one ;)
+                most[ 1 ] = n
+            else:
+                while i > 0:
+                    # more posts?
+                    if n[ 1 ] > most[ i ][ 1 ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = n
+                        # shift to next
+                        i -= 1
+                    else:
+                        # possibly fill up the empty spaces
+                        if i < amount:
+                            most[ i+1 ] = n
+                        # break
+                        i = 0
+            # fetch next entry
+            if len( nicks ) > 0:
+                n = nicks.popitem()
+            else:
+                n = None
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostYelling( self ):
+        """return a dict of the nicks yelling the most,
+           keys are the "activity"-rank
+        """
+        minMsgs = 10
+        amount  =  2
+        nicks   = {}
+        most    = {}
+        # map nick -> no. of posts
+        for k, v in self.yelling.items():
+            msgs = len( self.byNick[ k ] )
+            if msgs >= minMsgs:
+                nicks[ k ] = 100 * v / msgs
+        # fetch the first entry
+        n = nicks.popitem()
+        while n:
+            i = len( most )
+            if i == 0:
+                # the very first one ;)
+                most[ 1 ] = n
+            else:
+                while i > 0:
+                    # more posts?
+                    if n[ 1 ] > most[ i ][ 1 ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = n
+                        # shift to next
+                        i -= 1
+                    else:
+                        # possibly fill up the empty spaces
+                        if i < amount:
+                            most[ i+1 ] = n
+                        # break
+                        i = 0
+            # fetch next entry
+            if len( nicks ) > 0:
+                n = nicks.popitem()
+            else:
+                n = None
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostShouting( self ):
+        """return a dict of the nicks shouting the most,
+           keys are the "activity"-rank
+        """
+        minMsgs = 10
+        amount  =  2
+        nicks   = {}
+        most    = {}
+        # map nick -> no. of posts
+        for k, v in self.shouting.items():
+            msgs = len( self.byNick[ k ] )
+            if msgs >= minMsgs:
+                nicks[ k ] = 100 * v / msgs
+        # fetch the first entry
+        n = nicks.popitem()
+        while n:
+            i = len( most )
+            if i == 0:
+                # the very first one ;)
+                most[ 1 ] = n
+            else:
+                while i > 0:
+                    # more posts?
+                    if n[ 1 ] > most[ i ][ 1 ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = n
+                        # shift to next
+                        i -= 1
+                    else:
+                        # possibly fill up the empty spaces
+                        if i < amount:
+                            most[ i+1 ] = n
+                        # break
+                        i = 0
+            # fetch next entry
+            if len( nicks ) > 0:
+                n = nicks.popitem()
+            else:
+                n = None
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostHappyFaces( self ):
+        """return a dict of the nicks sending the most happy faces,
+           keys are the "activity"-rank
+        """
+        minMsgs = 10
+        amount  =  2
+        nicks   = {}
+        most    = {}
+        # map nick -> no. of posts
+        for k, v in self.happy.items():
+            msgs = len( self.byNick[ k ] )
+            if msgs >= minMsgs:
+                nicks[ k ] = 100 * v / msgs
+        # fetch the first entry
+        n = nicks.popitem()
+        while n:
+            i = len( most )
+            if i == 0:
+                # the very first one ;)
+                most[ 1 ] = n
+            else:
+                while i > 0:
+                    # more posts?
+                    if n[ 1 ] > most[ i ][ 1 ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = n
+                        # shift to next
+                        i -= 1
+                    else:
+                        # possibly fill up the empty spaces
+                        if i < amount:
+                            most[ i+1 ] = n
+                        # break
+                        i = 0
+            # fetch next entry
+            if len( nicks ) > 0:
+                n = nicks.popitem()
+            else:
+                n = None
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostSadFaces( self ):
+        """return a dict of the nicks sending the most sad faces,
+           keys are the "activity"-rank
+        """
+        minMsgs = 10
+        amount  =  2
+        nicks   = {}
+        most    = {}
+        # map nick -> no. of posts
+        for k, v in self.sad.items():
             msgs = len( self.byNick[ k ] )
             if msgs >= minMsgs:
                 nicks[ k ] = 100 * v / msgs
@@ -833,13 +1041,128 @@ not enough nicks visited this channel
         return """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
-        <th align="left">Is %s stupid? %d%% of his/her messages contained a question.</th>
+        <th align="left" class="data" valign="top">
+Is %s stupid or just asking too many questions? %d%% of his/her messages contained a question.
+        </th>
     </tr>
     <tr>
-        <td align="left">%s didn't know much either - %d%% </td>
+        <td align="left" class="data" valign="top">
+%s didn't know much either - %d%% of his/her lines were questions.
+        </td>
     </tr>
 </table>
 """ % ( q[ 1 ][ 0 ], q[ 1 ][ 1 ], q[ 2 ][ 0 ], q[ 2 ][ 1 ] )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostYelling( self ):
+        """see ircLog
+        """
+        y = ircLog.mostYelling( self )
+        return """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
+    <tr>
+        <th align="left" class="data" valign="top">
+The loudest one was %s, who yelled %d%% of the time!
+        </th>
+    </tr>
+    <tr>
+        <td align="left" class="data" valign="top">
+Another old yeller was %s, who shouted %d%% of the time!
+        </td>
+    </tr>
+</table>
+""" % ( y[ 1 ][ 0 ], y[ 1 ][ 1 ], y[ 2 ][ 0 ], y[ 2 ][ 1 ] )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostShouting( self ):
+        """see ircLog
+        """
+        s = ircLog.mostShouting( self )
+        return """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
+    <tr>
+        <th align="left" class="data" valign="top">
+It seems that %s's shift-key is hanging: %d%% of the time he/she wrote UPPERCASE.
+        </th>
+    </tr>
+    <tr>
+        <td align="left" class="data" valign="top">
+%s just forgot to deactivate his/her Caps-Lock. He/She wrote UPPERCASE %d%% of the time.
+        </td>
+    </tr>
+</table>
+""" % ( s[ 1 ][ 0 ], s[ 1 ][ 1 ], s[ 2 ][ 0 ], s[ 2 ][ 1 ] )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostHappyFaces( self ):
+        """see ircLog
+        """
+        h = ircLog.mostHappyFaces( self )
+        return """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
+    <tr>
+        <th align="left" class="data" valign="top">
+%s brings happiness to the world. %d%% lines contained smiling faces. :)
+        </th>
+    </tr>
+    <tr>
+        <td align="left" class="data" valign="top">
+%s isn't a sad person either, smiling %d%% of the time.
+        </td>
+    </tr>
+</table>
+""" % ( h[ 1 ][ 0 ], h[ 1 ][ 1 ], h[ 2 ][ 0 ], h[ 2 ][ 1 ] )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostSadFaces( self ):
+        """see ircLog
+        """
+        s = ircLog.mostSadFaces( self )
+        return """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
+    <tr>
+        <th align="left" class="data" valign="top">
+%s seems to be sad at the moment: %d%% lines contained sad faces. :(
+        </th>
+    </tr>
+    <tr>
+        <td align="left" class="data" valign="top">
+%s is also a sad person, crying %d%% of the time.
+        </td>
+    </tr>
+</table>
+""" % ( s[ 1 ][ 0 ], s[ 1 ][ 1 ], s[ 2 ][ 0 ], s[ 2 ][ 1 ] )
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def interestingNumbers( self ):
+        """a bunch of interesting numbers
+        """
+        s = ircLog.mostSadFaces( self )
+        return """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
+    <tr>
+        <th align="center" class="header_2">
+S O M E &nbsp; I N T E R E S T I N G &nbsp; N U M B E R S
+        </th>
+    </tr>
+    <tr>
+        <td align="center" class="border_2" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+        <td align="center" class="data" valign="top">
+%s
+        </td>
+    </tr>
+</table>
+""" % ( self.mostQuestions() + self.mostYelling() + self.mostShouting()
+      + self.mostHappyFaces() + self.mostSadFaces()
+      )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
