@@ -2234,7 +2234,7 @@ during this <b>%d</b>-day period <b>%d</b> different nicks visited %s
 
     last update: %s
     <br />
-    powered by <a href="http://pils.berlios.de">pils - Python Irc Log Stats</a>
+    <a href="http://pils.berlios.de"><img src="powered_by_pils.png" alt="pils - Python Irc Log Stats" border="0" height="100" width="200" /></a>
 </p>
 """ % ( self.numOfMsgs,
         int( math.floor( duration / 3600 ) ),
