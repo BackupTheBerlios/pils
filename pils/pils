@@ -436,7 +436,7 @@ class ircLog:
         most   = {}
         # map nick -> no. of posts
         for k, v in self.questions.items():
-            nicks[ k ] = v / len( self.byNick[ k ] )
+            nicks[ k ] = 100 * v / len( self.byNick[ k ] )
         # fetch the first entry
         n = nicks.popitem()
         while n:
