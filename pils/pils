@@ -70,6 +70,16 @@ def formatMyTime( t ):
         t[:4]
       )
 
+def countWords( s ):
+    w = 0
+    s = s.strip()
+    if len( s ) > 0:
+        w += 1
+    while s.count( ' ' ) > 0:
+        w += 1
+        s = s[ s.index( ' ' ) ].strip()
+    return w
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -103,6 +113,7 @@ class ircLog:
         self.shouting  = {}
         self.happy     = {}
         self.sad       = {}
+        self.words     = {}
         # initialise the internal variables
         self.numOfMsgs = 0
         self.initMinutes()
@@ -246,6 +257,9 @@ class ircLog:
             if not self.sad.has_key( who ):
                 self.sad[ who ] = 0
             self.sad[ who ] += 1
+#        if not self.words.has_key( who ):
+#            self.words[ who ] = 0
+#        self.words[ who ] += countWords( what )
         while self.byNick[ who ].has_key( when ):
             when = "%s%s" % ( when[ :-6 ],
                               string.zfill( ( int( when[ -6: ] ) + 1 ),
@@ -737,6 +751,61 @@ class ircLog:
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+    def wordsPerLine( self ):
+        """return a dict of the nick writing the most words per lines
+           and the channel average
+        """
+        minMsgs = 10
+        amount  =  1
+        nicks   = {}
+        most    = {}
+        tw      =  0
+        tm      =  0
+        # map nick -> no. of posts
+        for k, v in self.byNick.items():
+            w = 0
+            msgs = len( v )
+            for l in v.values():
+                w += countWords( l )
+            tw += w
+            tm += msgs
+            if msgs >= minMsgs:
+                nicks[ k ] = float( w / msgs )
+        # fetch the first entry
+        n = nicks.popitem()
+        while n:
+            i = len( most )
+            if i == 0:
+                # the very first one ;)
+                most[ 1 ] = n
+            else:
+                while i > 0:
+                    # more posts?
+                    if n[ 1 ] > most[ i ][ 1 ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = n
+                        # shift to next
+                        i -= 1
+                    else:
+                        # possibly fill up the empty spaces
+                        if i < amount:
+                            most[ i+1 ] = n
+                        # break
+                        i = 0
+            # fetch next entry
+            if len( nicks ) > 0:
+                n = nicks.popitem()
+            else:
+                n = None
+        most[ 2 ] = list( ( self.channel, float( tw / tm ) ) )
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
     def mostActiveMinutes( self ):
         """which minutes were the most busy ones?
         """
@@ -1215,6 +1284,27 @@ It seems that %s's shift-key is hanging: %.1f%% of the time he/she wrote UPPERCA
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+    def wordsPerLine( self ):
+        """see ircLog
+        """
+        w = ircLog.wordsPerLine( self )
+        return """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
+    <tr>
+        <th align="left" class="data" valign="top">
+%s wrote the most words per lines, averaging %.1f words per line.
+        </th>
+    </tr>
+    <tr>
+        <td align="left" class="data" valign="top">
+%s average was %.1f words per line.
+        </td>
+    </tr>
+</table>
+""" % ( w[ 1 ][ 0 ], w[ 1 ][ 1 ], w[ 2 ][ 0 ], w[ 2 ][ 1 ] )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
     def interestingNumbers( self ):
         """a bunch of interesting numbers
         """
@@ -1237,7 +1327,7 @@ S O M E &nbsp; I N T E R E S T I N G &nbsp; N U M B E R S
 </table>
 """ % ( self.mostQuestions() + self.mostYelling() + self.mostShouting()
       + self.mostHappyFaces() + self.mostSadFaces()
-      + self.longestLines()
+      + self.longestLines() + self.wordsPerLine()
       )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
