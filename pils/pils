@@ -165,7 +165,7 @@ class ircLog:
         self.initPatterns()
         # optionally parse in a logfile
         if path and os.path.exists( path ) and os.path.isfile( path ):
-            self.path      = path
+            self.path  = path
             self.parse()
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -222,6 +222,37 @@ class ircLog:
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+    def loadStats( self, filename ):
+        fh = open( filename, 'r' )
+        dump = cPickle.load( fh )
+        fh.close()
+        self.channel   = dump[ 'channel' ]
+        self.network   = dump[ 'network' ]
+        self.generator = dump[ 'generator' ]
+        self.nicks     = dump[ 'nicks' ]
+        self.byNick    = dump[ 'byNick' ]
+        self.byIP      = dump[ 'byIP' ]
+        self.byCountry = dump[ 'byCountry' ]
+        self.byMinute  = dump[ 'byMinute' ]
+        self.byHour    = dump[ 'byHour' ]
+        self.byDay     = dump[ 'byDay' ]
+        self.byWeekday = dump[ 'byWeekday' ]
+        self.byMonth   = dump[ 'byMonth' ]
+        self.byYear    = dump[ 'byYear' ]
+        self.urls      = dump[ 'urls' ]
+        self.nickRefs  = dump[ 'nickRefs' ]
+        self.questions = dump[ 'questions' ]
+        self.yelling   = dump[ 'yelling' ]
+        self.shouting  = dump[ 'shouting' ]
+        self.happy     = dump[ 'happy' ]
+        self.sad       = dump[ 'sad' ]
+        self.words     = dump[ 'words' ]
+        self.numOfMsgs = dump[ 'numOfMsgs' ]
+        self.firstMsg  = dump[ 'firstMsg' ]
+        self.lastMsg   = dump[ 'lastMsg' ]
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
     def dumpStats( self, filename ):
         fh = open( filename, 'w' )
         cPickle.dump( { 'channel'  : self.channel,
@@ -258,6 +289,11 @@ class ircLog:
     def parse( self ):
         """read the logfile and analyze its contents
         """
+        dumpDate = 0
+        dumpFile = '%s.dump' % self.channel
+        if os.path.exists( dumpFile ):
+            self.loadStats( dumpFile )
+            dumpDate = self.lastMsg
         fh = open( self.path, 'r' )
         lines = fh.readlines()
         fh.close()
@@ -292,22 +328,24 @@ class ircLog:
                     second = "0%s" % second
                 date = "%s%s%s%s%s%s" % ( year, month, day,
                                           hour, minute, second )
-                if self.firstMsg == 0 or self.firstMsg > date:
-                    self.firstMsg = date
-                if self.lastMsg == 0 or self.lastMsg < date:
-                    self.lastMsg = date
-                # a conversational message
-                if msg[0] == "<":
-                    nick, msg = msg[1:].split( ">", 1 )
-                    nick, ident = nick.split( "!", 1 )
-                    self.log( nick, msg, date )
-                    self.incWeekday( weekday )
-                # an action
-                elif msg[0] == "[":
-                    pass
-                # a server message
-                elif msg[0] == "-":
-                    pass
+                if date > dumpDate:
+                    if self.firstMsg == 0 or self.firstMsg > date:
+                        self.firstMsg = date
+                    if self.lastMsg == 0 or self.lastMsg < date:
+                        self.lastMsg = date
+                    # a conversational message
+                    if msg[0] == "<":
+                        nick, msg = msg[1:].split( ">", 1 )
+                        nick, ident = nick.split( "!", 1 )
+                        self.log( nick, msg, date )
+                        self.incWeekday( weekday )
+                    # an action
+                    elif msg[0] == "[":
+                        pass
+                    # a server message
+                    elif msg[0] == "-":
+                        pass
+        self.dumpStats( dumpFile )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -2298,8 +2336,5 @@ usage: %s input output
     out = open( sys.argv[ 5 ], "w" )
     out.write( str( il ) )
     out.close()
-
-    il.dumpStats( '%s.dump' % il.channel )
-
 
 ### eof ###
