@@ -431,12 +431,15 @@ class ircLog:
         """return a dict of the nicks asking the most questions,
            keys are the "activity"-rank
         """
-        amount = 2
-        nicks  = {}
-        most   = {}
+        minMsgs = 10
+        amount  =  2
+        nicks   = {}
+        most    = {}
         # map nick -> no. of posts
         for k, v in self.questions.items():
-            nicks[ k ] = 100 * v / len( self.byNick[ k ] )
+            msgs = len( self.byNick[ k ] )
+            if msgs >= minMsgs:
+                nicks[ k ] = 100 * v / msgs
         # fetch the first entry
         n = nicks.popitem()
         while n:
