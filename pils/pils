@@ -694,12 +694,12 @@ class ircLog:
         tm      =  0
         # map nick -> no. of posts
         for k, v in self.byNick.items():
-            msgs = len( v )
-            tm += msgs
             c = 0
-            for l in v:
+            msgs = len( v )
+            for l in v.values():
                 c += len( l )
             tc += c
+            tm += msgs
             if msgs >= minMsgs:
                 nicks[ k ] = c / msgs
         # fetch the first entry
