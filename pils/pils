@@ -473,7 +473,7 @@ class ircLog:
         for k, v in self.questions.items():
             msgs = len( self.byNick[ k ] )
             if msgs >= minMsgs:
-                nicks[ k ] = float( 100 * v ) / float( msgs )
+                nicks[ k ] = 100.0 * v / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
         while n:
@@ -520,7 +520,7 @@ class ircLog:
         for k, v in self.yelling.items():
             msgs = len( self.byNick[ k ] )
             if msgs >= minMsgs:
-                nicks[ k ] = float( 100 * v ) / float( msgs )
+                nicks[ k ] = 100.0 * v / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
         while n:
@@ -567,7 +567,7 @@ class ircLog:
         for k, v in self.shouting.items():
             msgs = len( self.byNick[ k ] )
             if msgs >= minMsgs:
-                nicks[ k ] = float( 100 * v ) / float( msgs )
+                nicks[ k ] = 100.0 * v / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
         while n:
@@ -614,7 +614,7 @@ class ircLog:
         for k, v in self.happy.items():
             msgs = len( self.byNick[ k ] )
             if msgs >= minMsgs:
-                nicks[ k ] = float( 100 * v ) / float( msgs )
+                nicks[ k ] = 100.0 * v / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
         while n:
@@ -661,7 +661,7 @@ class ircLog:
         for k, v in self.sad.items():
             msgs = len( self.byNick[ k ] )
             if msgs >= minMsgs:
-                nicks[ k ] = float( 100 * v ) / float( msgs )
+                nicks[ k ] = 100.0 * v / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
         while n:
