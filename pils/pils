@@ -836,7 +836,7 @@ not enough nicks visited this channel
         <td align="left">%s didn't know much either - %d%% </td>
     </tr>
 </table>
-""" % ( q[ 0 ][ 0 ], q[ 0 ][ 1 ], q[ 1 ][ 0 ], q[ 1 ][ 1 ] )
+""" % ( q[ 1 ][ 0 ], q[ 1 ][ 1 ], q[ 2 ][ 0 ], q[ 2 ][ 1 ] )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
