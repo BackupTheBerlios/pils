@@ -1294,7 +1294,7 @@ class ircLogHtml( ircLog ):
         msgs = self.nickQuotes( nick )
         if msgs:
             activity = {}
-            average  = self.numOfMsgs / len( self.nicks ) / 24 # / daysDiffMyTime( self.firstMsg, self.lastMsg ) + 1
+            average  = self.numOfMsgs / len( self.nicks ) / 24.0 # / daysDiffMyTime( self.firstMsg, self.lastMsg ) + 1
             if nick == 'nikl':
                 print 'avg: %s ( %s / %s )' % ( average, self.numOfMsgs, len( self.nicks ) )
             for i in range( 24 ):
@@ -1310,7 +1310,7 @@ class ircLogHtml( ircLog ):
 #    <tr>
 #"""
             for i in range( 24 ):
-                h = activity[ i ] / ( total + (total / average) )
+                h = math.ceil( activity[ i ] / ( total + (total / average) ) )
                 if nick == 'nikl':
                     print '%s: %s -> %s' % ( i, activity[ i ], h )
                 activity[ i ] = h
