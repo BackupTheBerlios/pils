@@ -1,0 +1,1323 @@
+#!/usr/bin/env python
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# pils - Python Irc Log Stats ( http://pils.berlios.de )
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+# a tiny python script to analyze logfiles of irc-conversations and 
+# generate corresponding html-output
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+# FEATURES:
+#   - input is currently limited to dircproxy
+#   - the output's layout is hard-coded
+#   - the shown plugins are not selectable yet
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#
+# TODO:
+#   - modularization:
+#     split up functionality into seperate units for more flexibility
+#     and a cleaner program structure
+#     ( e.g. input, analyzation and output )
+#   - optimization:
+#     perfomance enhancements
+#     ( e.g. avoid looping over large sequences )
+#   - enhancements:
+#     adding functionality
+#     ( e.g. caching or templates )
+#   - distutils setup
+#
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# (c) 2003 - Nikolaus Schlemm
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+# the necessary imports
+import os, re, sys, math, time, string, random, calendar
+
+# define arrays for the calendar names, so they can easily be tranlated
+weekdayNames = ( "Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun" )
+monthNames   = ( "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                 "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" )
+
+def monthName2Number( m ):
+    """resolve a month's name to its numerical represantation
+    """
+    for i in range( 12 ):
+        if monthNames[ i ] == m:
+            return str( i+1 )
+
+def formatMyTime( t ):
+    """resolve a "yyyymmddhhmmss"-timestamp to a nice date-format
+    """
+    return """
+%s %s %s %s:%s:%s %s
+""" % ( weekdayNames[ calendar.weekday( int( t[:4] ),
+                                        int( t[4:6] ),
+                                        int( t[6:8] )
+                                      )
+                    ],
+        monthNames[ int( t[4:6] )-1 ],
+        t[6:8],
+        t[8:10],
+        t[10:12],
+        t[12:],
+        t[:4]
+      )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+class ircLog:
+    """ the base class for an irc log-analyzer
+    """
+
+    def __init__( self, channel, network, generator, path=None ):
+        """the constructor - mostly setting up instance variables
+        """
+        self.startTime = time.time()
+        self.channel   = channel
+        self.network   = network
+        self.generator = generator
+        self.byNick    = {}
+        self.byIP      = {}
+        self.byCountry = {}
+        self.byMinute  = {}
+        self.byHour    = {}
+        self.byDay     = {}
+        self.byWeekday = {}
+        self.byMonth   = {}
+        self.byYear    = {}
+        self.urls      = {}
+        self.patterns  = {}
+        self.nickRefs  = {}
+        # initialise the internal variables
+        self.numOfMsgs = 0
+        self.initMinutes()
+        self.initHours()
+        self.initDays()
+        self.initMonths()
+        self.initWeekdays()
+        self.initPatterns()
+        # optionally parse in a logfile
+    	if path and os.path.exists( path ) and os.path.isfile( path ):
+            self.path      = path
+            self.parse()
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def initMinutes( self ):
+        """initialise the byMinute-stats
+        """
+        for m in range( 60 ):
+            self.byMinute[ m ] = 0
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def initHours( self ):
+        """initialise the byHour-stats
+        """
+        for h in range( 24 ):
+            self.byHour[ h ] = 0
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def initDays( self ):
+        """initialise the byDay-stats
+        """
+        for d in range( 31 ):
+            self.byDay[ d ] = 0
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def initMonths( self ):
+        """initialise the byMonth-stats
+        """
+        for m in range( 12 ):
+            self.byMonth[ m ] = 0
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def initWeekdays( self ):
+        """initialise the byWeekday-stats
+        """
+        for d in range( 7 ):
+            self.byWeekday[ d ] = 0
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def initPatterns( self ):
+        """initialise the regex-patterns
+        """
+        self.patterns[ 'nicks' ] = {}
+        self.patterns[ 'url' ]   = re.compile( "(([a-z]*://)|(www\.))([a-z0-9\-]+\.)+[a-z0-9\-]+((\.|/)\S+)*",
+                                               re.IGNORECASE
+                                             )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def parse( self ):
+        """read the logfile and analyze its contents
+        """
+        fh = open( self.path, 'r' )
+        lines = fh.readlines()
+        fh.close()
+        # split lines
+        for l in lines:
+            # ignore comments
+            if l.startswith( "@" ):
+                date, msg = l[ 1: ].split( " ", 1 )
+                try:
+                    date = int( date )
+		    date = time.gmtime( date )
+                except:
+                    break
+                day     = date[ 2 ]
+                month   = date[ 1 ]
+                year    = date[ 0 ]
+                hour    = date[ 3 ]
+                minute  = date[ 4 ]
+                second  = date[ 5 ]
+                weekday = calendar.weekday( int( year ),
+                                            int( month ),
+                                            int( day ) )
+                if len( str( month ) ) < 2:
+                    month = "0%s" % month
+                if len( str( day ) ) < 2:
+                    day = "0%s" % day
+                if len( str( hour ) ) < 2:
+                    hour = "0%s" % hour
+                if len( str( minute ) ) < 2:
+                    minute = "0%s" % minute
+                if len( str( second ) ) < 2:
+                    second = "0%s" % second
+                date = "%s%s%s%s%s%s" % ( year, month, day,
+                                          hour, minute, second )
+                # a conversational message
+                if msg.startswith( "<" ):
+                    nick, msg = msg[1:].split( ">", 1 )
+                    nick, ident = nick.split( "!", 1 )
+                    self.log( nick, msg, date )
+                    self.incWeekday( weekday )
+                # an action
+                elif msg.startswith( "[" ):
+                    pass
+                # a server message
+                elif msg.startswith( "-" ):
+                    pass
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def log( self, who, what, when ):
+        """log one message
+        """
+        if not self.byNick.has_key( who ):
+            self.byNick[ who ] = {}
+        while self.byNick[ who ].has_key( when ):
+            when = "%s%s" % ( when[ :-6 ],
+                              string.zfill( ( int( when[ -6: ] ) + 1 ),
+                                            6
+                                          )
+                            )
+        self.logNickRefs( who, what, when )
+        self.byNick[ who ][ when ] = self.logUrls( who, what, when )
+        self.incMinute( when[ -4:-2 ] )
+        self.incHour(   when[ -6:-4 ] )
+        self.incDay(    when[  6: 8 ] )
+        self.incMonth(  when[  4: 6 ] )
+        self.incYear(   when[   : 4 ] )
+	self.numOfMsgs += 1
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def logNickRefs( self, who, what, when ):
+        """log the referenced nick in a message
+           this one DEFINETELY needs serious improvement!!!
+        """
+        for n in self.byNick.keys():
+            if n != who:
+                n = n.replace( '[', '\[' ).replace( ']', '\]' )
+                if not self.patterns[ 'nicks' ].has_key( n ):
+                    self.patterns[ 'nicks' ][ n ] = re.compile( n, re.IGNORECASE )
+                cnt = len( self.patterns[ 'nicks' ][ n ].findall( what ) )
+                if cnt > 0:
+                    if self.nickRefs.has_key( n ):
+                        cnt += self.nickRefs[ n ][ 'count' ]
+                    self.nickRefs[ n ] = { 'count': cnt,
+                                           'nick' : who,
+                                           'time' : when
+                                         }
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def logUrls( self, who, what, when ):
+        """log the urls mentioned in a message and link them 
+        """
+        m = self.patterns[ 'url' ].search( what )
+        if m:
+            cnt = 1
+            url =  m.group()
+            if self.urls.has_key( url ):
+                cnt += self.urls[ url ][ 'count' ]
+            self.urls[ m.group() ] = { 'count': cnt,
+                                       'nick' : who,
+                                       'time' : when
+                                     }
+            return """%s<a href="%s" target="_blank">%s</a>%s""" \
+                 % ( what[ :m.start() ],
+                     url,
+                     url,
+                     self.logUrls( who, what[ m.end(): ], when )
+                   )
+        else:
+            return what
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def incMinute( self, m ):
+        """update the byMinute-stats
+        """
+        m = int( m )
+        if not self.byMinute.has_key( m ):
+            self.byMinute[ m ] = 0
+        self.byMinute[ m ] += 1
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def incHour( self, h ):
+        """update the byHour-stats
+        """
+        h = int( h )
+        if not self.byHour.has_key( h ):
+            self.byHour[ h ] = 0
+        self.byHour[ h ] += 1
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def incDay( self, d ):
+        """update the byDay-stats
+        """
+        d = int( d )-1
+        if not self.byDay.has_key( d ):
+            self.byDay[ d ] = 0
+        self.byDay[ d ] += 1
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def incWeekday( self, w ):
+        """update the byWeekday-stats
+        """
+        w = int( w )
+        if not self.byWeekday.has_key( w ):
+            self.byWeekday[ w ] = 0
+        self.byWeekday[ w ] += 1
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def incMonth( self, m ):
+        """update the byMonth-stats
+        """
+        m = int( m )-1
+        if not self.byMonth.has_key( m ):
+            self.byMonth[ m ] = 0
+        self.byMonth[ m ] += 1
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def incYear( self, y ):
+        """update the byYear-stats
+        """
+        y = int( y )
+        if not self.byYear.has_key( y ):
+            self.byYear[ y ] = 0
+        self.byYear[ y ] += 1
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def nickQuotes( self, who ):
+        """return a dictionary of a what a certain nick said
+        """
+        if self.byNick.has_key( who ):
+            return self.byNick[ who ]
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def randomNickQuote( self, who ):
+        """pick a random quote of what a certain nick said
+        """
+        if self.byNick.has_key( who ):
+            k = self.byNick[ who ].keys()
+            k = k[ random.randrange( len( k ) ) ]
+            return self.byNick[ who ][ k ]
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def randomNick( self ):
+        """randomly select a nick
+        """
+        if len( self.byNick ) > 0:
+            k = self.byNick.keys()
+            return k[ random.randrange( len( k ) ) ]
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def randomQuote( self ):
+        """pick a totally random quote
+        """
+        return self.randomNickQuote( self.randomNick() )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveNicks( self, amount=10 ):
+        """return a dict of the mosz active nicks,
+           keys are the "activity"-rank
+        """
+        nicks = {}
+        most  = {}
+        # map nick -> no. of posts
+        for k, v in self.byNick.items():
+            nicks[ k ] = len( v )
+        # fetch the first entry
+        n = nicks.popitem()
+        while n:
+            i = len( most )
+            if i == 0:
+                # the very first one ;)
+                most[ 1 ] = n
+            else:
+                while i > 0:
+                    # more posts?
+                    if n[ 1 ] > most[ i ][ 1 ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = n
+                        # shift to next
+                        i -= 1
+                    else:
+                        # possibly fill up the empty spaces
+                        if i < amount:
+                            most[ i+1 ] = n
+                        # break
+                        i = 0
+            # fetch next entry
+            if len( nicks ) > 0:
+                n = nicks.popitem()
+            else:
+                n = None
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveMinutes( self ):
+        """which minutes were the most busy ones?
+        """
+        most     = {}
+	scores   = self.byMinute.values()
+	scores.sort()
+	scores.reverse()
+        for k, v in self.byMinute.items():
+            most[ scores.index( v )+1 ] = ( k, v )
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveHours( self ):
+        """which hours were the most busy ones?
+        """
+        most     = {}
+	scores   = self.byHour.values()
+	scores.sort()
+	scores.reverse()
+        for k, v in self.byHour.items():
+            most[ scores.index( v )+1 ] = ( k, v )
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveDays( self ):
+        """which days were the most busy ones?
+        """
+        most     = {}
+	scores   = self.byDay.values()
+	scores.sort()
+	scores.reverse()
+        for k, v in self.byDay.items():
+            most[ scores.index( v )+1 ] = ( k, v )
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveMonths( self ):
+        """which months were the most busy ones?
+        """
+        most     = {}
+	scores   = self.byMonth.values()
+	scores.sort()
+	scores.reverse()
+        for k, v in self.byMonth.items():
+            most[ scores.index( v )+1 ] = ( k, v )
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveYears( self ):
+        """which years were the most busy ones?
+        """
+        most     = {}
+	scores   = self.byYear.values()
+	scores.sort()
+	scores.reverse()
+        for k, v in self.byYear.items():
+            most[ scores.index( v )+1 ] = ( k, v )
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveWeekdays( self ):
+        """which weekdays were the most busy ones?
+        """
+        most     = {}
+	scores   = self.byWeekday.values()
+	scores.sort()
+	scores.reverse()
+        for k, v in self.byWeekday.items():
+            most[ scores.index( v )+1 ] = ( k, v )
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostReferencedNicks( self, amount=10 ):
+        """which nicks were referenced most often?
+           (compare to mostActiveNicks)
+        """
+        nicks = {}
+        most  = {}
+        # map nicks -> no. of references
+        for k, v in self.nickRefs.items():
+            nicks[ k ] = v[ 'count' ]
+        # fetch the first entry
+        n = nicks.popitem()
+        while n:
+            i = len( most )
+            if i == 0:
+                # the very first one ;)
+                most[ 1 ] = n
+            else:
+                while i > 0:
+                    # more references?
+                    if n[ 1 ] > most[ i ][ 1 ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = n
+                        # shift to next
+                        i -= 1
+                    # newer?
+                    elif n[ 1 ] == most[ i ][ 1 ] \
+                     and self.nickRefs[ n[ 0 ] ][ 'time' ] > self.nickRefs[ most[ i ][ 0 ] ][ 'time' ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = n
+                        # shift to next
+                        i -= 1
+                    else:
+                        # possibly fill up the empty spaces
+                        if i < amount:
+                            most[ i+1 ] = n
+                        # break
+                        i = 0
+            # fetch next entry
+            if len( nicks ) > 0:
+                n = nicks.popitem()
+            else:
+                n = None
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostReferencedUrls( self, amount=10 ):
+        """which urls were referenced most often?
+           (compare to mostActiveNicks)
+        """
+        urls = {}
+        most  = {}
+        # map urls -> no. of references
+        for k, v in self.urls.items():
+            urls[ k ] = v[ 'count' ]
+        # fetch the first entry
+        u = urls.popitem()
+        while u:
+            i = len( most )
+            if i == 0:
+                # the very first one ;)
+                most[ 1 ] = u
+            else:
+                while i > 0:
+                    # more references?
+                    if u[ 1 ] > most[ i ][ 1 ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = u
+                        # shift to next
+                        i -= 1
+                    # newer?
+                    elif u[ 1 ] == most[ i ][ 1 ] \
+                     and self.urls[ u[ 0 ] ][ 'time' ] > self.urls[ most[ i ][ 0 ] ][ 'time' ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = u
+                        # shift to next
+                        i -= 1
+                    else:
+                        # possibly fill up the empty spaces
+                        if i < amount:
+                            most[ i+1 ] = u
+                        # break
+                        i = 0
+            # fetch next entry
+            if len( urls ) > 0:
+                u = urls.popitem()
+            else:
+                u = None
+        return most
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+
+class ircLogHtml( ircLog ):
+    """a derived irc log-analyzer printing out html
+    """
+
+    def __init__( self, channel, network, generator, path=None ):
+        """see ircLog
+        """
+        ircLog.__init__( self, channel, network, generator, path )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def nickActivity( self, nick ):
+        """print out a graph of a nicks most active hours
+        """
+        msgs = self.nickQuotes( nick )
+        if msgs:
+            activity = {}
+            for i in range( 24 ):
+                activity[ i ] = 0
+            total = len( msgs )
+            for k in msgs.keys():
+                activity[ int( k[ 8:10 ] ) ] += 1
+            html = """
+<table align="center" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+"""
+            for i in range( 24 ):
+                h = activity[ i ] * 20 / total
+                if i > 0:
+                    l = ( activity[ i ] + activity[ i-1 ] ) * 10 / total
+                    html += """
+        <td align="center" class="data" valign="bottom"><table align="center" border="0" cellpadding="0" cellspacing="0" width="1">
+                <tr>
+                    <td align="center" class="header_1"><img src="/gfx/pixel.gif" alt="" border="0" height="%d" width="1" /></td>
+                </tr>
+            </table></td>
+""" % math.ceil( l )
+                html += """
+        <td align="center" class="data" valign="bottom"><table align="center" border="0" cellpadding="0" cellspacing="0" width="1">
+                <tr>
+                    <td align="center" class="header_3"><img src="/gfx/pixel.gif" alt="" border="0" height="%d" width="1" /></td>
+                </tr>
+            </table></td>
+""" % math.ceil( h )
+            return html + """
+    </tr>
+</table>
+"""
+	    
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveNicks( self, amount=10 ):
+        """see ircLog
+        """
+        html = """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <th align="center" class="header_2" colspan="9">
+M O S T &nbsp; A C T I V E &nbsp; N I C K S 
+        </th>
+    </tr>
+    <tr>
+        <th align="center" class="header_3">#</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">Nick</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">Posts</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">Activity</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">Random Quote</th>
+    </tr>
+"""
+        for k, v in ircLog.mostActiveNicks(self, amount ).items():
+            html += """
+    <tr>
+        <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+        <td align="right" class="data" valign="top">%d.</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="left" class="data" valign="top">%s</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="right" class="data" valign="top">%d</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="center" class="data" valign="bottom">%s</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+	<td align="left" class="data" valign="top"><i>%s</i></td>
+    </tr>
+""" % ( k, v[0], v[1], self.nickActivity( v[0] ), ircLog.randomNickQuote( self, v[0] ) )
+        return html + "</table>"
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def randomNick( self ):
+        """see ircLog
+        """
+        return """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
+    <tr>
+        <th align="right" width="100">Random Nick:</th>
+	<td align="left">%s</td>
+    </tr>
+</table>
+""" % ircLog.randomNick( self )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def randomQuote( self ):
+        """see ircLog
+        """
+        return """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
+    <tr>
+        <th align="right" width="100">Random Quote:</th>
+	<td align="left">%s</td>
+    </tr>
+</table>
+""" % ircLog.randomQuote( self )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveWeekdays( self ):
+        """see ircLog
+        """
+        html = """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <th align="center" class="header_2" colspan="13">
+M O S T &nbsp; A C T I V E &nbsp; W E E K D A Y S 
+        </th>
+    </tr>
+    <tr>
+        <td align="center" class="border_2" colspan="13" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+"""
+        total = 0
+        most  = ircLog.mostActiveWeekdays( self )[ 1 ][ 0 ]
+        for d in range( 7 ):
+            total += self.byWeekday[ d ]
+        for d in range( 7 ):
+            if d > 0:
+                html += """
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+"""
+            percentage = int( self.byWeekday[ d ] * 100 / total )
+            html += """
+        <td align="center" class="data" valign="bottom">
+            <table align="center" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td align="center">%d %%</td>
+                </tr>
+                <tr>
+                    <td align="center" valign="bottom">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="50%%">
+                            <tr>
+                                <td align="center" class="header_3"><img src="/gfx/pixel.gif" alt="" border="0" height="%d" width="1" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+""" % ( percentage, percentage )
+
+        html += """
+    </tr>
+    <tr>
+        <td align="center" class="border_2" colspan="13" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+"""
+        for d in range( 7 ):
+            bgcolor = 'data'
+            if d == most:
+                bgcolor = 'header_3'
+            if d > 0:
+                html += """
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+"""
+            html += """
+        <td align="center" class="%s">%s</td>
+""" % ( bgcolor, weekdayNames[ d ] )
+
+        html += """
+    </tr>
+</table>
+"""
+        return html
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveMinutes( self ):
+        """see ircLog
+        """
+        html = """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <th align="center" class="header_2" colspan="119">
+M O S T &nbsp; A C T I V E &nbsp; M I N U T E S 
+        </th>
+    </tr>
+    <tr>
+        <td align="center" class="border_2" colspan="119" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+"""
+        total = 0
+        most  = ircLog.mostActiveMinutes( self )[ 1 ][ 0 ]
+        for m in range( 60 ):
+            total += self.byMinute[ m ]
+        for m in range( 60 ):
+            percentage = int( self.byMinute[ m ] * 100 / total )
+            if m > 0:
+                html += """
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+"""
+            html += """
+        <td align="center" class="data" valign="bottom">
+            <table align="center" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td align="center" valign="bottom">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="50%%">
+                            <tr>
+                                <td align="center" class="header_3"><img src="/gfx/pixel.gif" alt="" border="0" height="%d" width="1" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+""" % ( percentage )
+
+        html += """
+    </tr>
+    <tr>
+        <td align="center" class="border_2" colspan="119" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+"""
+        for m in range( 60 ):
+            bgcolor = 'data'
+            if m == most:
+                bgcolor = 'header_3'
+            if m > 0:
+                html += """
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+"""
+            html += """
+        <td align="center" class="%s">%s</td>
+""" % ( bgcolor, m )
+
+        html += """
+    </tr>
+</table>
+"""
+        return html
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveHours( self ):
+        """see ircLog
+        """
+        html = """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <th align="center" class="header_2" colspan="47">
+M O S T &nbsp; A C T I V E &nbsp; H O U R S
+        </th>
+    </tr>
+    <tr>
+        <td align="center" class="border_2" colspan="47" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+"""
+        total = 0
+        most  = ircLog.mostActiveHours( self )[ 1 ][ 0 ]
+        for h in range( 24 ):
+            total += self.byHour[ h ]
+        for h in range( 24 ):
+            percentage = int( self.byHour[ h ] * 100 / total )
+            if h > 0:
+                html += """
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+"""
+            html += """
+        <td align="center" class="data" valign="bottom">
+            <table align="center" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td align="center">%d %%</td>
+                </tr>
+                <tr>
+                    <td align="center" valign="bottom">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="50%%">
+                            <tr>
+                                <td align="center" class="header_3"><img src="/gfx/pixel.gif" alt="" border="0" height="%d" width="1" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+""" % ( percentage, percentage )
+
+        html += """
+    </tr>
+    <tr>
+        <td align="center" class="border_2" colspan="47" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+"""
+        for h in range( 24 ):
+            bgcolor = 'data'
+            if h == most:
+                bgcolor = 'header_3'
+            if h > 0:
+                html += """
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+"""
+            html += """
+        <td align="center" class="%s">%s</td>
+""" % ( bgcolor, h )
+
+        html += """
+    </tr>
+</table>
+"""
+        return html
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveDays( self ):
+        """see ircLog
+        """
+        html = """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <th align="center" class="header_2" colspan="61">
+M O S T &nbsp; A C T I V E &nbsp; D A Y S
+        </th>
+    </tr>
+    <tr>
+        <td align="center" class="border_2" colspan="61" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+"""
+        total = 0
+        most  = ircLog.mostActiveDays( self )[ 1 ][ 0 ]
+        for d in range( 31 ):
+            total += self.byDay[ d ]
+        for d in range( 31 ):
+            percentage = int( self.byDay[ d ] * 100 / total )
+            if d > 0:
+                html += """
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+"""
+            html += """
+        <td align="center" class="data" valign="bottom">
+            <table align="center" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td align="center">%d %%</td>
+                </tr>
+                <tr>
+                    <td align="center" valign="bottom">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="50%%">
+                            <tr>
+                                <td align="center" class="header_3"><img src="/gfx/pixel.gif" alt="" border="0" height="%d" width="1" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+""" % ( percentage, percentage )
+
+        html += """
+    </tr>
+    <tr>
+        <td align="center" class="border_2" colspan="61" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+"""
+        for d in range( 31 ):
+            bgcolor = 'data'
+            if d == most:
+                bgcolor = 'header_3'
+            if d > 0:
+                html += """
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+"""
+            html += """
+        <td align="center" class="%s">%s</td>
+""" % ( bgcolor, d )
+
+        html += """
+    </tr>
+</table>
+"""
+        return html
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostActiveMonths( self ):
+        """see ircLog
+        """
+        html = """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <th align="center" class="header_2" colspan="23">
+M O S T &nbsp; A C T I V E &nbsp; M O N T H S
+        </th>
+    </tr>
+    <tr>
+        <td align="center" class="border_2" colspan="23" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+"""
+        total = 0
+        most  = ircLog.mostActiveMonths( self )[ 1 ][ 0 ]
+        for m in range( 12 ):
+            total += self.byMonth[ m ]
+        for m in range( 12 ):
+            percentage = int( self.byMonth[ m ] * 100 / total )
+            if m > 0:
+                html += """
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+"""
+            html += """
+        <td align="center" class="data" valign="bottom">
+            <table align="center" border="0" cellpadding="0" cellspacing="0">
+                <tr>
+                    <td align="center">%d %%</td>
+                </tr>
+                <tr>
+                    <td align="center" valign="bottom">
+                        <table align="center" border="0" cellpadding="0" cellspacing="0" width="50%%">
+                            <tr>
+                                <td align="center" class="header_3"><img src="/gfx/pixel.gif" alt="" border="0" height="%d" width="1" /></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+""" % ( percentage, percentage )
+
+        html += """
+    </tr>
+    <tr>
+        <td align="center" class="border_2" colspan="23" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+"""
+        for m in range( 12 ):
+            bgcolor = 'data'
+            if m == most:
+                bgcolor = 'header_3'
+            if m > 0:
+                html += """
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+"""
+            html += """
+        <td align="center" class="%s">%s</td>
+""" % ( bgcolor, monthNames[ m ] )
+
+        html += """
+    </tr>
+</table>
+"""
+        return html
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostReferencedNicks( self, amount=10 ):
+        """see ircLog
+        """
+        html = """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <th align="center" class="header_2" colspan="9">
+M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S 
+        </th>
+    </tr>
+    <tr>
+        <th align="center" class="header_3">#</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">Nick</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">Ref's</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">Last Referenced By</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">When</th>
+    </tr>
+"""
+        for k, v in ircLog.mostReferencedNicks(self, amount ).items():
+            html += """
+    <tr>
+        <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+        <td align="right" class="data" valign="top">%d.</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="left" class="data" valign="top">%s</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="right" class="data" valign="top">%d</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="left" class="data" valign="top">%s</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+	<td align="right" class="data" valign="top">%s</td>
+    </tr>
+""" % ( k, v[0], v[1], self.nickRefs[ v[0] ][ 'nick' ], formatMyTime( self.nickRefs[ v[0] ][ 'time' ] ) )
+        return html + "</table>"
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostReferencedUrls( self, amount=10 ):
+        """see ircLog
+        """
+        html = """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
+    <tr>
+        <th align="center" class="header_2" colspan="9">
+M O S T &nbsp; R E F E R E N C E D &nbsp; U R L S 
+        </th>
+    </tr>
+    <tr>
+        <th align="center" class="header_3">#</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">Url</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">Ref's</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">Last Referenced By</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">When</th>
+    </tr>
+"""
+        for k, v in ircLog.mostReferencedUrls(self, amount ).items():
+            html += """
+    <tr>
+        <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+        <td align="right" class="data" valign="top">%d.</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="left" class="data" valign="top"><a href="%s" target="_blank">%s</a></td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="right" class="data" valign="top">%d</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="left" class="data" valign="top">%s</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+	<td align="right" class="data" valign="top">%s</td>
+    </tr>
+""" % ( k, v[0], v[0], v[1], self.urls[ v[0] ][ 'nick' ], formatMyTime( self.urls[ v[0] ][ 'time' ] ) )
+        return html + "</table>"
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def printPluginBox( self, content ):
+        """print a "boy" around a content (e.g. a plugin)
+        """
+        return """
+    <tr>
+        <td align="center">
+    %s
+        </td>
+    </tr>
+    <tr>
+        <td align="center" class="border_1" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+""" % content
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def __repr__( self ):
+        """the represantation as a string
+        """
+        html = """
+<html>
+    <head>
+        <title>stats for %s on %s - generated by %s</title>
+        <style>
+<!--
+.data{
+    background-color: #222222;
+    color           : #aaaaaa;
+}
+.header_1{
+    background-color: #444444;
+    color           : #cccccc;
+}
+.header_2{
+    background-color: #666666;
+    color           : #222222;
+}
+.header_3{
+    background-color: #888888;
+    color           : #444444;
+}
+.border_1{
+    background-color: #cccccc;
+}
+.border_2{
+    background-color: #888888;
+}
+.border_3{
+    background-color: #444444;
+}
+-->
+        </style>
+    </head>
+    <body bgcolor="#000000" text="#aaaaaa" link="#ffffee" alink="#ffffee" vlink="#ffffee">
+<table align="center" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+        <td align="center" class="border_1" rowspan="19" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="center" class="border_1" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="center" class="border_1" rowspan="19" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+        <th align="center" class="header_1">
+stats for %s on %s - generated by %s
+        </th>
+    </tr>
+    <tr>
+        <td align="center" class="border_1" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+""" % ( self.channel, self.network, self.generator,
+        self.channel, self.network, self.generator
+      )
+        # process the plugins
+        html += self.printPluginBox( self.mostActiveMinutes() )
+        html += self.printPluginBox( self.mostActiveHours() )
+        html += self.printPluginBox( self.mostActiveDays() )
+        html += self.printPluginBox( self.mostActiveMonths() )
+        html += self.printPluginBox( self.mostActiveWeekdays() )
+        html += self.printPluginBox( self.mostActiveNicks( 25 ) )
+        html += self.printPluginBox( self.mostReferencedNicks( 5 ) )
+        html += self.printPluginBox( self.mostReferencedUrls( 10 ) )
+
+        duration = int( time.time() - self.startTime )
+
+        return html + """
+</table>
+<p align="center">
+    %d messages were processed in %d hours %d minutes %d seconds
+    <br />
+    last update: %s
+    <br />
+    powered by <a href="http://pils.custom-scripting.de">pils - Python Irc Log Stats</a>
+</p>
+""" % ( self.numOfMsgs,
+        int( math.floor( duration / 3600 ) ),
+        int( math.floor( duration / 60 ) ),
+        int( math.floor( duration % 60 ) ),
+        time.ctime()
+      )
+
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+#only execute this if called directly
+if __name__ == "__main__":
+
+    # check parameter count
+    if len( sys.argv[ 1: ] ) < 5:
+        print """
+ERROR: not enough parameters
+usage: %s channel network generator input output
+""" % sys.argv[ 0 ]
+        sys.exit( 1 )
+
+    # check if input file exists
+    if not os.path.exists( sys.argv[ 4 ] ):
+        print """
+ERROR: input file does not exist
+usage: %s input output
+""" % sys.argv[ 0 ]
+        sys.exit( 1 )
+
+    # check if directory for output file exists
+    if not os.path.exists( os.path.dirname( sys.argv[ 5 ] ) ):
+        print """
+ERROR: directory for output file does not exist
+usage: %s input output
+""" % sys.argv[ 0 ]
+        sys.exit( 1 )
+
+    #   #   #   #   #
+
+    # initialise the randomizer
+    random.seed()
+    
+    # read in the logfile
+    il = ircLogHtml( sys.argv[ 1 ], sys.argv[ 2 ], sys.argv[ 3 ], sys.argv[ 4 ] )
+
+    # generate some output
+    out = open( sys.argv[ 5 ], "w" )
+    out.write( str( il ) )
+    out.close()
+
+### eof ###
+
