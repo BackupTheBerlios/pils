@@ -830,7 +830,7 @@ not enough nicks visited this channel
         return """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
-        <th align="left">Is %s stupid? %d%% of his messages contained a question.</th>
+        <th align="left">Is %s stupid? %d%% of his/her messages contained a question.</th>
     </tr>
     <tr>
         <td align="left">%s didn't know much either - %d%% </td>
