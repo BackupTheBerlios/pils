@@ -78,3 +78,4 @@ def nickActivity( channel, nick, activity ):
     img.save( path )
     # return the path relative to the current dir
     return path[ len( os.getcwd() ): ]
+
