@@ -732,7 +732,7 @@ class ircLog:
                 n = nicks.popitem()
             else:
                 n = None
-        most[ 2 ] = list( ( self.channel, tc/tm ) )
+        most[ 2 ] = list( ( self.channel, float( tc / tm ) ) )
         return most
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
