@@ -1,0 +1,16 @@
+body {
+    background-color: #ffffff;
+    color           : #444444;
+    margin          : 0pt;
+}
+a {
+    text-decoration : none;
+    color           : #001144;
+}
+a:hover {
+    color           : #ee9933;
+    text-decoration : underline;
+}
+.selected_menu_item {
+    color           : #ee9933;
+}
