@@ -1372,7 +1372,7 @@ It seems that %s's shift-key is hanging: %.1f%% of the time he/she wrote UPPERCA
     </tr>
     <tr>
         <td align="left" class="data" valign="top">
-%s average was %.1f words.
+the average %s visitor used %.1f words.
         </td>
     </tr>
 </table>
