@@ -37,6 +37,15 @@
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+
+# try to get some more performance
+try:
+    import psyco
+    psyco.full()
+except:
+    pass
+
+
 # the necessary imports
 import os, re, sys, math, time, string, random, calendar
 
