@@ -1294,7 +1294,7 @@ class ircLogHtml( ircLog ):
         msgs = self.nickQuotes( nick )
         if msgs:
             activity = {}
-            average  = self.numOfMsgs / ( len( self.nicks ) * 100 )
+            average  = self.numOfMsgs / ( len( self.nicks ) * 100 +1 )
             for i in range( 24 ):
                 activity[ i ] = 0
             total = len( msgs )
