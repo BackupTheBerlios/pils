@@ -81,15 +81,17 @@ def countWords( s ):
     return w
 
 def splitWords( str ):
-    words = []
-    w = ""
-    str += " "
+    minLength = 3
+    words     = []
+    str       += " "
+    w         = ""
     for i in range( len( str ) ):
         if str[ i ].isalnum():
             w += str[ i ]
         else:
-            if w != "":
-                words.append( w )
+            if len( w ) < minLength and w != "":
+                words.append( w.lower() )
+            w = ""
     return words
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
