@@ -744,21 +744,32 @@ N O T &nbsp; SO &nbsp; A C T I V E &nbsp; N I C K S
     </tr>
 """
                 i += 1
-        while i % 5 < 4:
-            if i % 5 == 3:
+        if i > 0:
+            if i % 5 < 4:
                 html += """
-        <td align="center" class="data" valign="top">
-        </td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
 """
-            else:
+                if i % 5 == 3:
+                    html += """
+            <td align="center" class="data" valign="top">
+            </td>
+    """
+                else:
+                    html += """
+            <td align="center" class="data" colspan="%d" valign="top">
+            </td>
+    """ % ( ( 4 - ( i % 5 ) ) * 2 - 1 )
                 html += """
-        <td align="center" class="data" colspan="%d" valign="top">
-        </td>
-""" % ( 4 - ( i % 5 ) )
+        </tr>
+    """
+        else:
             html += """
-    </tr>
-"""
-            i += 1
+        <tr>
+            <td align="center" class="data" colspan="9" valign="top">
+not enough nicks visited this channel
+            </td>
+        </tr>
+    """
         return html + "</table>"
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
