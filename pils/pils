@@ -270,10 +270,10 @@ class ircLog:
                 url = "http://%s" % url
             if self.urls.has_key( url ):
                 cnt += self.urls[ url ][ 'count' ]
-            self.urls[ m.group() ] = { 'count': cnt,
-                                       'nick' : who,
-                                       'time' : when
-                                     }
+            self.urls[ url ] = { 'count': cnt,
+                                 'nick' : who,
+                                 'time' : when
+                               }
             return """%s<a href="%s" target="_blank">%s</a>%s""" \
                  % ( what[ :m.start() ],
                      url,
