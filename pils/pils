@@ -758,7 +758,7 @@ N O T &nbsp; SO &nbsp; A C T I V E &nbsp; N I C K S
                     html += """
             <td align="center" class="data" colspan="%d" valign="top">
             </td>
-    """ % ( ( 4 - ( i % 5 ) ) * 2 - 1 )
+    """ % ( ( 5 - ( i % 5 ) ) * 2 - 1 )
                 html += """
         </tr>
     """
