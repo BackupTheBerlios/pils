@@ -186,9 +186,12 @@ class ircLog:
     def initPatterns( self ):
         """initialise the regex-patterns
         """
-        self.patterns[ 'url' ]   = re.compile( "(([a-z]+://)|(www\.))([a-z0-9\-]+\.)+[a-z0-9\-]+((\.|/)\S+)*",
-                                               re.IGNORECASE
-                                             )
+        self.patterns[ 'url' ]  = re.compile( "(([a-z]+://)|(www\.))([a-z0-9\-]+\.)+[a-z0-9\-]+((\.|/)\S+)*",
+                                              re.IGNORECASE
+                                            )
+        self.patterns[ 'word' ] = re.compile( "[a-z0-9]{3,}",
+                                              re.IGNORECASE
+                                            )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -340,14 +343,19 @@ class ircLog:
         """log the urls mentioned in a message and link them
         """
         # possibly more efficient with regexp's ?
-        for w in splitWords( what ):
+#        for w in splitWords( what ):
+#            cnt = 1
+        m = self.patterns[ 'word' ].search( what )
+        if m:
             cnt = 1
+            w =  m.group()
             if self.words.has_key( w ):
                 cnt += self.words[ w ][ 'count' ]
             self.words[ w ] = { 'count': cnt,
                                 'nick' : who,
                                 'time' : when
                               }
+            self.logWords( who, what[ m.end(): ], when )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
