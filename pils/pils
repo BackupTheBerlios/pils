@@ -164,7 +164,7 @@ class ircLog:
         self.initWeekdays()
         self.initPatterns()
         # optionally parse in a logfile
-    	if path and os.path.exists( path ) and os.path.isfile( path ):
+        if path and os.path.exists( path ) and os.path.isfile( path ):
             self.path      = path
             self.parse()
 
@@ -235,7 +235,7 @@ class ircLog:
                 date, msg = l[ 1: ].split( " ", 1 )
                 try:
                     date = int( date )
-		    date = time.gmtime( date )
+                    date = time.gmtime( date )
                 except:
                     break
                 day     = date[ 2 ]
@@ -264,16 +264,16 @@ class ircLog:
                 if self.lastMsg == 0 or self.lastMsg < date:
                     self.lastMsg = date
                 # a conversational message
-                if msg.startswith( "<" ):
+                if msg[0] == "<":
                     nick, msg = msg[1:].split( ">", 1 )
                     nick, ident = nick.split( "!", 1 )
                     self.log( nick, msg, date )
                     self.incWeekday( weekday )
                 # an action
-                elif msg.startswith( "[" ):
+                elif msg[0] == "[":
                     pass
                 # a server message
-                elif msg.startswith( "-" ):
+                elif msg[0] == "-":
                     pass
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -319,7 +319,7 @@ class ircLog:
         self.incDay(    when[  6: 8 ] )
         self.incMonth(  when[  4: 6 ] )
         self.incYear(   when[   : 4 ] )
-	self.numOfMsgs += 1
+        self.numOfMsgs += 1
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -930,9 +930,9 @@ class ircLog:
         """which minutes were the most busy ones?
         """
         most     = {}
-	scores   = self.byMinute.values()
-	scores.sort()
-	scores.reverse()
+        scores   = self.byMinute.values()
+        scores.sort()
+        scores.reverse()
         for k, v in self.byMinute.items():
             most[ scores.index( v )+1 ] = ( k, v )
         return most
@@ -943,9 +943,9 @@ class ircLog:
         """which hours were the most busy ones?
         """
         most     = {}
-	scores   = self.byHour.values()
-	scores.sort()
-	scores.reverse()
+        scores   = self.byHour.values()
+        scores.sort()
+        scores.reverse()
         for k, v in self.byHour.items():
             most[ scores.index( v )+1 ] = ( k, v )
         return most
@@ -956,9 +956,9 @@ class ircLog:
         """which days were the most busy ones?
         """
         most     = {}
-	scores   = self.byDay.values()
-	scores.sort()
-	scores.reverse()
+        scores   = self.byDay.values()
+        scores.sort()
+        scores.reverse()
         for k, v in self.byDay.items():
             most[ scores.index( v )+1 ] = ( k, v )
         return most
@@ -969,9 +969,9 @@ class ircLog:
         """which months were the most busy ones?
         """
         most     = {}
-	scores   = self.byMonth.values()
-	scores.sort()
-	scores.reverse()
+        scores   = self.byMonth.values()
+        scores.sort()
+        scores.reverse()
         for k, v in self.byMonth.items():
             most[ scores.index( v )+1 ] = ( k, v )
         return most
@@ -982,9 +982,9 @@ class ircLog:
         """which years were the most busy ones?
         """
         most     = {}
-	scores   = self.byYear.values()
-	scores.sort()
-	scores.reverse()
+        scores   = self.byYear.values()
+        scores.sort()
+        scores.reverse()
         for k, v in self.byYear.items():
             most[ scores.index( v )+1 ] = ( k, v )
         return most
@@ -995,9 +995,9 @@ class ircLog:
         """which weekdays were the most busy ones?
         """
         most     = {}
-	scores   = self.byWeekday.values()
-	scores.sort()
-	scores.reverse()
+        scores   = self.byWeekday.values()
+        scores.sort()
+        scores.reverse()
         for k, v in self.byWeekday.items():
             most[ scores.index( v )+1 ] = ( k, v )
         return most
@@ -1243,9 +1243,10 @@ class ircLogHtml( ircLog ):
     def mostActiveNicks( self, amount=10 ):
         """see ircLog
         """
+        html = []
         if amount > len( self.nicks ):
             amount = len( self.nicks )
-        html = """
+        html.append( """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="center" class="header_2" colspan="9">
@@ -1265,9 +1266,9 @@ class ircLogHtml( ircLog ):
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3">Random Quote</th>
     </tr>
-""" % amount
+""" % amount )
         for k, v in ircLog.mostActiveNicks( self, amount ).items():
-            html += """
+            html.append( """
     <tr>
         <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
@@ -1282,10 +1283,11 @@ class ircLogHtml( ircLog ):
 
         <td align="center" class="data" valign="middle">%s</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-	<td align="left" class="data" valign="top"><i>%s</i></td>
+    <td align="left" class="data" valign="top"><i>%s</i></td>
     </tr>
-""" % ( k, v[0], v[1], self.nickActivity( v[0] ), ircLog.randomNickQuote( self, v[0] ) )
-        return html + "</table>"
+""" % ( k, v[0], v[1], self.nickActivity( v[0] ), ircLog.randomNickQuote( self, v[0] ) ) )
+        html.append( "</table>" )
+        return ''.join( html )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -1293,12 +1295,13 @@ class ircLogHtml( ircLog ):
         """prints a list of nicks and the number of their messages,
            optionally an offset can be provided
         """
+        html = []
         if amount+offset > len( self.nicks ):
             if offset > len( self.nicks ):
                 amount = 0
             else:
                 amount = len( self.nicks )-offset
-        html = """
+        html.append( """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="center" class="header_2" colspan="9">
@@ -1310,57 +1313,56 @@ class ircLogHtml( ircLog ):
         <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
 
-""" % amount
+""" % amount )
         i = 0
         for k, v in ircLog.mostActiveNicks( self, amount+offset ).items():
             if k > offset:
                 if i % 5 == 0:
-                    html += """
+                    html.append( """
     <tr>
 """
                 else:
-                    html += """
+                    html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-"""
-                html += """
+""" )
+                html.append( """
         <td align="left" class="data" valign="top">
 %s (%d)
         </td>
-""" % ( v[0], v[1] )
+""" % ( v[0], v[1] ) )
                 if i % 5 == 4:
-                    html += """
+                    html.append( """
     </tr>
-"""
+""" )
                 i += 1
         if i > 0:
             if i % 5 < 4:
-                html += """
+                html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-"""
+""" )
                 if i % 5 == 3:
-                    html += """
+                    html.append( """
             <td align="center" class="data" valign="top">
             </td>
-
-    """
+""" )
                 else:
-                    html += """
+                    html.append( """
             <td align="center" class="data" colspan="%d" valign="top">
             </td>
-    """ % ( ( 5 - ( i % 5 ) ) * 2 - 1 )
-                html += """
+""" % ( ( 5 - ( i % 5 ) ) * 2 - 1 ) )
+                html.append( """
         </tr>
-    """
+""" )
         else:
-            html += """
+            html.append( """
         <tr>
             <td align="center" class="data" colspan="9" valign="top">
 not enough nicks visited this channel
             </td>
         </tr>
-
-    """
-        return html + "</table>"
+""" )
+        html.append( "</table>" )
+        return ''.join( html )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -1576,8 +1578,7 @@ S O M E &nbsp; I N T E R E S T I N G &nbsp; N U M B E R S
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="right" width="100">Random Nick:</th>
-
-	<td align="left">%s</td>
+        <td align="left">%s</td>
     </tr>
 </table>
 """ % ircLog.randomNick( self )
@@ -1591,9 +1592,8 @@ S O M E &nbsp; I N T E R E S T I N G &nbsp; N U M B E R S
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="right" width="100">Random Quote:</th>
-	<td align="left">%s</td>
+        <td align="left">%s</td>
     </tr>
-
 </table>
 """ % ircLog.randomQuote( self )
 
@@ -1602,7 +1602,8 @@ S O M E &nbsp; I N T E R E S T I N G &nbsp; N U M B E R S
     def mostActiveWeekdays( self ):
         """see ircLog
         """
-        html = """
+        html = []
+        html.append( """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <th align="center" class="header_2" colspan="13">
@@ -1610,27 +1611,25 @@ M O S T &nbsp; A C T I V E &nbsp; W E E K D A Y S
         </th>
     </tr>
     <tr>
-
         <td align="center" class="border_2" colspan="13" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
-"""
+""" )
         total = 0
         most  = ircLog.mostActiveWeekdays( self )[ 1 ][ 0 ]
         for d in range( 7 ):
             total += self.byWeekday[ d ]
         for d in range( 7 ):
             if d > 0:
-                html += """
+                html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-"""
+""" )
             percentage = 100.0 * self.byWeekday[ d ] / total
-            html += """
+            html.append( """
         <td align="center" class="data" valign="bottom">
             <table align="center" border="0" cellpadding="0" cellspacing="0">
                 <tr>
                     <td align="center">%.1f %%</td>
-
                 </tr>
                 <tr>
                     <td align="center" valign="bottom">
@@ -1644,52 +1643,51 @@ M O S T &nbsp; A C T I V E &nbsp; W E E K D A Y S
                 </tr>
             </table>
         </td>
-""" % ( percentage, math.ceil( percentage ) )
+""" % ( percentage, math.ceil( percentage ) ) )
 
-        html += """
+        html.append( """
     </tr>
     <tr>
         <td align="center" class="border_2" colspan="13" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
-"""
+""" )
         for d in range( 7 ):
             bgcolor = 'data'
             if d == most:
                 bgcolor = 'header_3'
             if d > 0:
-                html += """
+                html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-
-"""
-            html += """
+""" )
+            html.append( """
         <td align="center" class="%s">%s</td>
-""" % ( bgcolor, weekdayNames[ d ] )
+""" % ( bgcolor, weekdayNames[ d ] ) )
 
-        html += """
+        html.append( """
     </tr>
 </table>
-"""
-        return html
+""" )
+        return ''.join( html )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def mostActiveMinutes( self ):
         """see ircLog
         """
-        html = """
+        html = []
+        html.append( """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <th align="center" class="header_2" colspan="119">
 M O S T &nbsp; A C T I V E &nbsp; M I N U T E S
         </th>
-
     </tr>
     <tr>
         <td align="center" class="border_2" colspan="119" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
-"""
+""" )
         total = 0
         most  = ircLog.mostActiveMinutes( self )[ 1 ][ 0 ]
         for m in range( 60 ):
@@ -1697,14 +1695,13 @@ M O S T &nbsp; A C T I V E &nbsp; M I N U T E S
         for m in range( 60 ):
             percentage = 100.0 * self.byMinute[ m ] / total
             if m > 0:
-                html += """
+                html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-"""
-            html += """
+""" )
+            html.append( """
         <td align="center" class="data" valign="bottom">
             <table align="center" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-
                     <td align="center" valign="bottom">
                         <table align="center" border="0" cellpadding="0" cellspacing="0" width="50%%">
                             <tr>
@@ -1714,54 +1711,52 @@ M O S T &nbsp; A C T I V E &nbsp; M I N U T E S
                     </td>
                 </tr>
             </table>
-
         </td>
-""" % ( math.ceil( percentage ) )
+""" % ( math.ceil( percentage ) ) )
 
-        html += """
+        html.append( """
     </tr>
     <tr>
         <td align="center" class="border_2" colspan="119" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
-"""
+""" )
         for m in range( 60 ):
             bgcolor = 'data'
             if m == most:
                 bgcolor = 'header_3'
             if m > 0:
-                html += """
+                html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-"""
-            html += """
+""" )
+            html.append( """
         <td align="center" class="%s">%s</td>
+""" % ( bgcolor, m ) )
 
-""" % ( bgcolor, m )
-
-        html += """
+        html.append( """
     </tr>
 </table>
-"""
-        return html
+""" )
+        return ''.join( html )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def mostActiveHours( self ):
         """see ircLog
         """
-        html = """
+        html = []
+        html.append( """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <th align="center" class="header_2" colspan="47">
 M O S T &nbsp; A C T I V E &nbsp; H O U R S
         </th>
     </tr>
-
     <tr>
         <td align="center" class="border_2" colspan="47" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
-"""
+""" )
         total = 0
         most  = ircLog.mostActiveHours( self )[ 1 ][ 0 ]
         for h in range( 24 ):
@@ -1769,15 +1764,14 @@ M O S T &nbsp; A C T I V E &nbsp; H O U R S
         for h in range( 24 ):
             percentage = 100.0 * self.byHour[ h ] / total
             if h > 0:
-                html += """
+                html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-"""
-            html += """
+""" )
+            html.append( """
         <td align="center" class="data" valign="bottom">
             <table align="center" border="0" cellpadding="0" cellspacing="0">
                 <tr>
                     <td align="center">%.1f %%</td>
-
                 </tr>
                 <tr>
                     <td align="center" valign="bottom">
@@ -1787,56 +1781,54 @@ M O S T &nbsp; A C T I V E &nbsp; H O U R S
                             </tr>
                         </table>
                     </td>
-
                 </tr>
             </table>
         </td>
-""" % ( percentage, math.ceil( percentage ) )
+""" % ( percentage, math.ceil( percentage ) ) )
 
-        html += """
+        html.append( """
     </tr>
     <tr>
         <td align="center" class="border_2" colspan="47" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
-"""
+""" )
         for h in range( 24 ):
             bgcolor = 'data'
             if h == most:
                 bgcolor = 'header_3'
             if h > 0:
-                html += """
+                html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-
-"""
-            html += """
+""" )
+            html.append( """
         <td align="center" class="%s">%s</td>
-""" % ( bgcolor, h )
+""" % ( bgcolor, h ) )
 
-        html += """
+        html.append( """
     </tr>
 </table>
-"""
-        return html
+""" )
+        return ''.join( html )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def mostActiveDays( self ):
         """see ircLog
         """
-        html = """
+        html = []
+        html.append( """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <th align="center" class="header_2" colspan="61">
 M O S T &nbsp; A C T I V E &nbsp; D A Y S
         </th>
-
     </tr>
     <tr>
         <td align="center" class="border_2" colspan="61" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
-"""
+""" )
         total = 0
         most  = ircLog.mostActiveDays( self )[ 1 ][ 0 ]
         for d in range( 31 ):
@@ -1844,14 +1836,13 @@ M O S T &nbsp; A C T I V E &nbsp; D A Y S
         for d in range( 31 ):
             percentage = 100.0 * self.byDay[ d ] / total
             if d > 0:
-                html += """
+                html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-"""
-            html += """
+""" )
+            html.append( """
         <td align="center" class="data" valign="bottom">
             <table align="center" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-
                     <td align="center">%.1f %%</td>
                 </tr>
                 <tr>
@@ -1860,58 +1851,56 @@ M O S T &nbsp; A C T I V E &nbsp; D A Y S
                             <tr>
                                 <td align="center" class="header_3"><img src="/gfx/pixel.gif" alt="" border="0" height="%d" width="1" /></td>
                             </tr>
-
                         </table>
                     </td>
                 </tr>
             </table>
         </td>
-""" % ( percentage, math.ceil( percentage ) )
+""" % ( percentage, math.ceil( percentage ) ) )
 
-        html += """
+        html.append( """
     </tr>
     <tr>
         <td align="center" class="border_2" colspan="61" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
-
     <tr>
-"""
+""" )
         for d in range( 31 ):
             bgcolor = 'data'
             if d == most:
                 bgcolor = 'header_3'
             if d > 0:
-                html += """
+                html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-"""
-            html += """
+""" )
+            html.append( """
         <td align="center" class="%s">%s</td>
-""" % ( bgcolor, d )
+""" % ( bgcolor, d ) )
 
-        html += """
+        html.append( """
     </tr>
 </table>
-"""
-        return html
+""" )
+        return ''.join( html )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def mostActiveMonths( self ):
         """see ircLog
         """
-        html = """
+        html = []
+        html.append( """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <th align="center" class="header_2" colspan="23">
 M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         </th>
-
     </tr>
     <tr>
         <td align="center" class="border_2" colspan="23" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
-"""
+""" )
         total = 0
         most  = ircLog.mostActiveMonths( self )[ 1 ][ 0 ]
         for m in range( 12 ):
@@ -1919,14 +1908,13 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         for m in range( 12 ):
             percentage = 100.0 * self.byMonth[ m ] / total
             if m > 0:
-                html += """
+                html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-"""
-            html += """
+""" )
+            html.append( """
         <td align="center" class="data" valign="bottom">
             <table align="center" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-
                     <td align="center">%.1f %%</td>
                 </tr>
                 <tr>
@@ -1935,54 +1923,52 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
                             <tr>
                                 <td align="center" class="header_3"><img src="/gfx/pixel.gif" alt="" border="0" height="%d" width="1" /></td>
                             </tr>
-
                         </table>
                     </td>
                 </tr>
             </table>
         </td>
-""" % ( percentage, math.ceil( percentage ) )
+""" % ( percentage, math.ceil( percentage ) ) )
 
-        html += """
+        html.append( """
     </tr>
     <tr>
         <td align="center" class="border_2" colspan="23" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
-
     <tr>
-"""
+""" )
         for m in range( 12 ):
             bgcolor = 'data'
             if m == most:
                 bgcolor = 'header_3'
             if m > 0:
-                html += """
+                html.append( """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-"""
-            html += """
+""" )
+            html.append( """
         <td align="center" class="%s">%s</td>
-""" % ( bgcolor, monthNames[ m ] )
+""" % ( bgcolor, monthNames[ m ] ) )
 
-        html += """
+        html.append( """
     </tr>
 </table>
-"""
-        return html
+""" )
+        return ''.join( html )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def mostReferencedNicks( self, amount=10 ):
         """see ircLog
         """
+        html = []
         if amount > len( self.nickRefs ):
             amount = len( self.nickRefs )
-        html = """
+        html.append( """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="center" class="header_2" colspan="9">
 %d &nbsp; M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S
         </th>
-
     </tr>
     <tr>
         <th align="center" class="header_3" width="15">#</th>
@@ -1990,19 +1976,17 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         <th align="center" class="header_3">Nick</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3" width="25">Ref's</th>
-
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3" width="175">Last Referenced By</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3" width="200">When</th>
     </tr>
-""" % amount
+""" % amount )
         for k, v in ircLog.mostReferencedNicks(self, amount ).items():
-            html += """
+            html.append( """
     <tr>
         <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
-
     <tr>
         <td align="right" class="data" valign="top" width="15">%d.</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
@@ -2010,33 +1994,32 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="right" class="data" valign="top" width="25">%d</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-
         <td align="left" class="data" valign="top" width="175">%s</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="right" class="data" valign="top" width="200">%s</td>
     </tr>
-""" % ( k, v[0], v[1], self.nickRefs[ v[0] ][ 'nick' ], formatMyTime( self.nickRefs[ v[0] ][ 'time' ] ) )
-        return html + "</table>"
+""" % ( k, v[0], v[1], self.nickRefs[ v[0] ][ 'nick' ], formatMyTime( self.nickRefs[ v[0] ][ 'time' ] ) ) )
+        html.append( "</table>" )
+        return ''.join( html )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def mostReferencedUrls( self, amount=10 ):
         """see ircLog
         """
+        html = []
         if amount > len( self.urls ):
             amount = len( self.urls )
-        html = """
+        html.append( """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="center" class="header_2" colspan="9">
-
 %d &nbsp; M O S T &nbsp; R E F E R E N C E D &nbsp; U R L S
         </th>
     </tr>
     <tr>
         <th align="center" class="header_3" width="15">#</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-
         <th align="center" class="header_3">Url</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3" width="25">Ref's</th>
@@ -2044,11 +2027,10 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         <th align="center" class="header_3" width="175">Last Referenced By</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3" width="200">When</th>
-
     </tr>
-""" % amount
+""" % amount )
         for k, v in ircLog.mostReferencedUrls( self, amount ).items():
-            html += """
+            html.append( """
     <tr>
         <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
@@ -2056,7 +2038,6 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         <td align="right" class="data" valign="top" width="15">%d.</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="left" class="data" valign="top"><a href="%s" target="_blank">%s</a></td>
-
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="right" class="data" valign="top" width="25">%d</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
@@ -2064,25 +2045,25 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="right" class="data" valign="top" width="200">%s</td>
     </tr>
-
-""" % ( k, v[0], v[0], v[1], self.urls[ v[0] ][ 'nick' ], formatMyTime( self.urls[ v[0] ][ 'time' ] ) )
-        return html + "</table>"
+""" % ( k, v[0], v[0], v[1], self.urls[ v[0] ][ 'nick' ], formatMyTime( self.urls[ v[0] ][ 'time' ] ) ) )
+        html.append( "</table>" )
+        return ''.join( html )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     def mostUsedWords( self, amount=10 ):
         """see ircLog
         """
+        html = []
         if amount > len( self.words ):
             amount = len( self.words )
-        html = """
+        html.append( """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="center" class="header_2" colspan="9">
 %d &nbsp; M O S T &nbsp; U S E D &nbsp; W O R D S
         </th>
     </tr>
-
     <tr>
         <th align="center" class="header_3" width="15">#</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
@@ -2090,19 +2071,17 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3" width="25">Uses</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-
         <th align="center" class="header_3" width="175">Last Used By</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3" width="200">When</th>
     </tr>
-""" % amount
+""" % amount )
         for k, v in ircLog.mostUsedWords( self, amount ).items():
-            html += """
+            html.append( """
     <tr>
         <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
-
         <td align="right" class="data" valign="top" width="15">%d.</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="left" class="data" valign="top">%s</td>
@@ -2110,12 +2089,12 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         <td align="right" class="data" valign="top" width="25">%d</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="left" class="data" valign="top" width="175">%s</td>
-
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="right" class="data" valign="top" width="200">%s</td>
     </tr>
-""" % ( k, v[0], v[1], self.words[ v[0] ][ 'nick' ], formatMyTime( self.words[ v[0] ][ 'time' ] ) )
-        return html + "</table>"
+""" % ( k, v[0], v[1], self.words[ v[0] ][ 'nick' ], formatMyTime( self.words[ v[0] ][ 'time' ] ) ) )
+        html.append( "</table>" )
+        return ''.join( html )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -2134,7 +2113,6 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
     %s
         </td>
     </tr>
-
     <tr>
         <td align="center" class="border_1" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
@@ -2145,7 +2123,8 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
     def __repr__( self ):
         """the represantation as a string
         """
-        html = """
+        html = []
+        html.append( """
 <html>
     <head>
         <title>stats for %s on %s - generated by %s</title>
@@ -2179,7 +2158,6 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
 -->
         </style>
     </head>
-
     <body bgcolor="#000000" text="#aaaaaa" link="#ffffee" alink="#ffffee" vlink="#ffffee">
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
@@ -2189,7 +2167,6 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
     </tr>
     <tr>
         <th align="center" class="header_1">
-
 stats for %s on %s - generated by %s
         </th>
     </tr>
@@ -2198,36 +2175,35 @@ stats for %s on %s - generated by %s
     </tr>
 """ % ( self.channel, self.network, self.generator,
         self.channel, self.network, self.generator
-      )
-        html += """
+      ) )
+        html.append( """
     <tr>
         <td align="center" class="header_3">
 <p>
 during this <b>%d</b>-day period <b>%d</b> different nicks visited %s
-
 </p>
         </td>
     </tr>
     <tr>
         <td align="center" class="border_1" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
-""" % ( daysDiffMyTime( self.firstMsg, self.lastMsg ), len( self.nicks ), self.channel )
+""" % ( daysDiffMyTime( self.firstMsg, self.lastMsg ), len( self.nicks ), self.channel ) )
         # process the plugins
-#        html += self.printPluginBox( self.mostActiveMinutes() )
-        html += self.printPluginBox( self.mostActiveHours() )
-#        html += self.printPluginBox( self.mostActiveDays() )
-#        html += self.printPluginBox( self.mostActiveMonths() )
-        html += self.printPluginBox( self.mostActiveWeekdays() )
-        html += self.printPluginBox( self.mostActiveNicks( 25 ) )
-        html += self.printPluginBox( self.notSoActiveNicks( 50, 25 ) )
-        html += self.printPluginBox( self.interestingNumbers() )
-        html += self.printPluginBox( self.mostUsedWords( 10 ) )
-        html += self.printPluginBox( self.mostReferencedNicks( 10 ) )
-        html += self.printPluginBox( self.mostReferencedUrls( 25 ) )
+#        html.append(  self.printPluginBox( self.mostActiveMinutes() ) )
+        html.append( self.printPluginBox( self.mostActiveHours() ) )
+#        html.append( self.printPluginBox( self.mostActiveDays() ) )
+#        html.append( self.printPluginBox( self.mostActiveMonths() ) )
+        html.append( self.printPluginBox( self.mostActiveWeekdays() ) )
+        html.append( self.printPluginBox( self.mostActiveNicks( 25 ) ) )
+        html.append( self.printPluginBox( self.notSoActiveNicks( 50, 25 ) ) )
+        html.append( self.printPluginBox( self.interestingNumbers() ) )
+        html.append( self.printPluginBox( self.mostUsedWords( 10 ) ) )
+        html.append( self.printPluginBox( self.mostReferencedNicks( 10 ) ) )
+        html.append( self.printPluginBox( self.mostReferencedUrls( 25 ) ) )
 
         duration = int( time.time() - self.startTime )
 
-        return html + """
+        html.append( """
 </table>
 <p align="center">
     %d messages were processed in %d hours %d minutes %d seconds
@@ -2242,7 +2218,8 @@ during this <b>%d</b>-day period <b>%d</b> different nicks visited %s
         int( math.floor( duration / 60 ) ),
         int( math.floor( duration % 60 ) ),
         time.ctime()
-      )
+      ) )
+        return ''.join( html )
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -2289,5 +2266,6 @@ usage: %s input output
     out.write( str( il ) )
     out.close()
 
-### eof ###
 
+
+### eof ###
