@@ -690,7 +690,7 @@ class ircLog:
         amount  =  1
         nicks   = {}
         most    = {}
-        tl      =  0
+        tc      =  0
         tm      =  0
         # map nick -> no. of posts
         for k, v in self.byNick.items():
@@ -699,6 +699,7 @@ class ircLog:
             c = 0
             for l in v:
                 c += len( l )
+            tc += c
             if msgs >= minMsgs:
                 nicks[ k ] = c / msgs
         # fetch the first entry
@@ -731,7 +732,7 @@ class ircLog:
                 n = nicks.popitem()
             else:
                 n = None
-        most[ 2 ] = list( ( self.channel, tl/tm ) )
+        most[ 2 ] = list( ( self.channel, tc/tm ) )
         return most
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
