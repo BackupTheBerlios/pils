@@ -459,7 +459,7 @@ class ircLog:
         for k, v in self.questions.items():
             msgs = len( self.byNick[ k ] )
             if msgs >= minMsgs:
-                nicks[ k ] = 100.0 * v / msgs
+                nicks[ k ] = float( 100 * v / msgs )
         # fetch the first entry
         n = nicks.popitem()
         while n:
@@ -506,7 +506,7 @@ class ircLog:
         for k, v in self.yelling.items():
             msgs = len( self.byNick[ k ] )
             if msgs >= minMsgs:
-                nicks[ k ] = 100.0 * v / msgs
+                nicks[ k ] = float( 100 * v / msgs )
         # fetch the first entry
         n = nicks.popitem()
         while n:
@@ -553,7 +553,7 @@ class ircLog:
         for k, v in self.shouting.items():
             msgs = len( self.byNick[ k ] )
             if msgs >= minMsgs:
-                nicks[ k ] = 100.0 * v / msgs
+                nicks[ k ] = float( 100 * v / msgs )
         # fetch the first entry
         n = nicks.popitem()
         while n:
@@ -600,7 +600,7 @@ class ircLog:
         for k, v in self.happy.items():
             msgs = len( self.byNick[ k ] )
             if msgs >= minMsgs:
-                nicks[ k ] = 100.0 * v / msgs
+                nicks[ k ] = float( 100 * v / msgs )
         # fetch the first entry
         n = nicks.popitem()
         while n:
@@ -647,7 +647,7 @@ class ircLog:
         for k, v in self.sad.items():
             msgs = len( self.byNick[ k ] )
             if msgs >= minMsgs:
-                nicks[ k ] = 100.0 * v / msgs
+                nicks[ k ] = float( 100 * v / msgs )
         # fetch the first entry
         n = nicks.popitem()
         while n:
@@ -701,7 +701,7 @@ class ircLog:
             tc += c
             tm += msgs
             if msgs >= minMsgs:
-                nicks[ k ] = c / msgs
+                nicks[ k ] = float( c / msgs )
         # fetch the first entry
         n = nicks.popitem()
         while n:
@@ -1097,12 +1097,12 @@ not enough nicks visited this channel
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
         <th align="left" class="data" valign="top">
-Is %s stupid or just asking too many questions? %d%% of his/her messages contained a question.
+Is %s stupid or just asking too many questions? %.1f%% of his/her messages contained a question.
         </th>
     </tr>
     <tr>
         <td align="left" class="data" valign="top">
-%s didn't know much either - %d%% of his/her lines were questions.
+%s didn't know much either - %.1f%% of his/her lines were questions.
         </td>
     </tr>
 </table>
