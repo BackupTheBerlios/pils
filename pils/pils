@@ -355,9 +355,9 @@ class ircLog:
         """pick a random quote of what a certain nick said
         """
         if who in self.nicks:
-#            k = self.byNick[ who ].keys()
-#            k = k[ random.randrange( len( k ) ) ]
-            return random.choice( self.nickQuotes( who ) ) # self.byNick[ who ][ k ]
+            k = self.byNick[ who ].keys()
+            k = k[ random.randrange( len( k ) ) ]
+            return self.byNick[ who ][ k ]
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -365,8 +365,8 @@ class ircLog:
         """randomly select a nick
         """
         if len( self.nicks ) > 0:
-#            k = self.byNick.keys()
-            return random.choice( self.nicks ) # k[ random.randrange( len( k ) ) ]
+            k = self.byNick.keys()
+            return k[ random.randrange( len( k ) ) ]
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
