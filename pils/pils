@@ -250,7 +250,7 @@ class ircLog:
                         'lastMsg'  : self.lastMsg
                       },
                       fh,
-                      HIGHEST_PROTOCOL )
+                      cPickle.HIGHEST_PROTOCOL )
         fh.close()
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
