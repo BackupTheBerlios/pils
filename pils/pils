@@ -156,7 +156,7 @@ class ircLog:
     def initPatterns( self ):
         """initialise the regex-patterns
         """
-        self.patterns[ 'url' ]   = re.compile( "(([a-z]*://)|(www\.))([a-z0-9\-]+\.)+[a-z0-9\-]+((\.|/)\S+)*",
+        self.patterns[ 'url' ]   = re.compile( "(([a-z]+://)|(www\.))([a-z0-9\-]+\.)+[a-z0-9\-]+((\.|/)\S+)*",
                                                re.IGNORECASE
                                              )
 
@@ -266,6 +266,8 @@ class ircLog:
         if m:
             cnt = 1
             url =  m.group()
+            if url.startswith( 'www' ):
+                url = "http://%s" % url
             if self.urls.has_key( url ):
                 cnt += self.urls[ url ][ 'count' ]
             self.urls[ m.group() ] = { 'count': cnt,
