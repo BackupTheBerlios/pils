@@ -80,6 +80,18 @@ def countWords( s ):
         w += 1
     return w
 
+def splitWords( str ):
+    words = []
+    w = ""
+    str += " "
+    for i in range( len( str ) ):
+        if str[ i ].isalnum():
+            w += str[ i ]
+        else:
+            if w != "":
+                words.append( w )
+    return words
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -257,9 +269,6 @@ class ircLog:
             if not self.sad.has_key( who ):
                 self.sad[ who ] = 0
             self.sad[ who ] += 1
-#        if not self.words.has_key( who ):
-#            self.words[ who ] = 0
-#        self.words[ who ] += countWords( what )
         while self.byNick[ who ].has_key( when ):
             when = "%s%s" % ( when[ :-6 ],
                               string.zfill( ( int( when[ -6: ] ) + 1 ),
@@ -267,6 +276,7 @@ class ircLog:
                                           )
                             )
         self.logNickRefs( who, what, when )
+        self.logWords( who, what, when )
         self.byNick[ who ][ when ] = self.logUrls( who, what, when )
         self.incMinute( when[ -4:-2 ] )
         self.incHour(   when[ -6:-4 ] )
@@ -321,6 +331,21 @@ class ircLog:
                    )
         else:
             return what
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def logWords( self, who, what, when ):
+        """log the urls mentioned in a message and link them
+        """
+        # possibly more efficient with regexp's ?
+        for w in splitWords( what ):
+            cnt = 1
+            if self.words.has_key( w ):
+                cnt += self.words[ w ][ 'count' ]
+            self.words[ w ] = { 'count': cnt,
+                                'nick' : who,
+                                'time' : when
+                              }
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
@@ -424,39 +449,42 @@ class ircLog:
         """
         nicks = {}
         most  = {}
-        # map nick -> no. of posts
-        for k, v in self.byNick.items():
-            nicks[ k ] = len( v )
-        # fetch the first entry
-        n = nicks.popitem()
-        while n:
-            i = len( most )
-            if i == 0:
-                # the very first one ;)
-                most[ 1 ] = n
-            else:
-                while i > 0:
-                    # more posts?
-                    if n[ 1 ] > most[ i ][ 1 ]:
-                        # copy to next rank
-                        if i < amount:
-                            most[ i + 1 ] = most[ i ]
-                        # new top entry?
-                        if i == 1:
-                            most[ i ] = n
-                        # shift to next
-                        i -= 1
-                    else:
-                        # possibly fill up the empty spaces
-                        if i < amount:
-                            most[ i+1 ] = n
-                        # break
-                        i = 0
-            # fetch next entry
-            if len( nicks ) > 0:
-                n = nicks.popitem()
-            else:
-                n = None
+        if amount > len( self.byNick ):
+            amount = len( self.byNick )
+        if amount > 0:
+            # map nick -> no. of posts
+            for k, v in self.byNick.items():
+                nicks[ k ] = len( v )
+            # fetch the first entry
+            n = nicks.popitem()
+            while n:
+                i = len( most )
+                if i == 0:
+                    # the very first one ;)
+                    most[ 1 ] = n
+                else:
+                    while i > 0:
+                        # more posts?
+                        if n[ 1 ] > most[ i ][ 1 ]:
+                            # copy to next rank
+                            if i < amount:
+                                most[ i + 1 ] = most[ i ]
+                            # new top entry?
+                            if i == 1:
+                                most[ i ] = n
+                            # shift to next
+                            i -= 1
+                        else:
+                            # possibly fill up the empty spaces
+                            if i < amount:
+                                most[ i+1 ] = n
+                            # break
+                            i = 0
+                # fetch next entry
+                if len( nicks ) > 0:
+                    n = nicks.popitem()
+                else:
+                    n = None
         return most
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -944,50 +972,53 @@ class ircLog:
         """
         nicks = {}
         most  = {}
-        # map nicks -> no. of references
-        for k, v in self.nickRefs.items():
-            nicks[ k ] = v[ 'count' ]
-        # fetch the first entry
-        n = nicks.popitem()
-        while n:
-            i = len( most )
-            if i == 0:
-                # the very first one ;)
-                most[ 1 ] = n
-            else:
-                while i > 0:
-                    # more references?
-                    if n[ 1 ] > most[ i ][ 1 ]:
-                        # copy to next rank
-                        if i < amount:
-                            most[ i + 1 ] = most[ i ]
-                        # new top entry?
-                        if i == 1:
-                            most[ i ] = n
-                        # shift to next
-                        i -= 1
-                    # newer?
-                    elif n[ 1 ] == most[ i ][ 1 ] \
-                     and self.nickRefs[ n[ 0 ] ][ 'time' ] > self.nickRefs[ most[ i ][ 0 ] ][ 'time' ]:
-                        # copy to next rank
-                        if i < amount:
-                            most[ i + 1 ] = most[ i ]
-                        # new top entry?
-                        if i == 1:
-                            most[ i ] = n
-                        # shift to next
-                        i -= 1
-                    else:
-                        # possibly fill up the empty spaces
-                        if i < amount:
-                            most[ i+1 ] = n
-                        # break
-                        i = 0
-            # fetch next entry
-            if len( nicks ) > 0:
-                n = nicks.popitem()
-            else:
-                n = None
+        if amount > len( self.nickRefs ):
+            amount = len( self.nickRefs )
+        if amount > 0:
+            # map nicks -> no. of references
+            for k, v in self.nickRefs.items():
+                nicks[ k ] = v[ 'count' ]
+            # fetch the first entry
+            n = nicks.popitem()
+            while n:
+                i = len( most )
+                if i == 0:
+                    # the very first one ;)
+                    most[ 1 ] = n
+                else:
+                    while i > 0:
+                        # more references?
+                        if n[ 1 ] > most[ i ][ 1 ]:
+                            # copy to next rank
+                            if i < amount:
+                                most[ i + 1 ] = most[ i ]
+                            # new top entry?
+                            if i == 1:
+                                most[ i ] = n
+                            # shift to next
+                            i -= 1
+                        # newer?
+                        elif n[ 1 ] == most[ i ][ 1 ] \
+                         and self.nickRefs[ n[ 0 ] ][ 'time' ] > self.nickRefs[ most[ i ][ 0 ] ][ 'time' ]:
+                            # copy to next rank
+                            if i < amount:
+                                most[ i + 1 ] = most[ i ]
+                            # new top entry?
+                            if i == 1:
+                                most[ i ] = n
+                            # shift to next
+                            i -= 1
+                        else:
+                            # possibly fill up the empty spaces
+                            if i < amount:
+                                most[ i+1 ] = n
+                            # break
+                            i = 0
+                # fetch next entry
+                if len( nicks ) > 0:
+                    n = nicks.popitem()
+                else:
+                    n = None
         return most
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -998,50 +1029,110 @@ class ircLog:
         """
         urls = {}
         most  = {}
-        # map urls -> no. of references
-        for k, v in self.urls.items():
-            urls[ k ] = v[ 'count' ]
-        # fetch the first entry
-        u = urls.popitem()
-        while u:
-            i = len( most )
-            if i == 0:
-                # the very first one ;)
-                most[ 1 ] = u
-            else:
-                while i > 0:
-                    # more references?
-                    if u[ 1 ] > most[ i ][ 1 ]:
-                        # copy to next rank
-                        if i < amount:
-                            most[ i + 1 ] = most[ i ]
-                        # new top entry?
-                        if i == 1:
-                            most[ i ] = u
-                        # shift to next
-                        i -= 1
-                    # newer?
-                    elif u[ 1 ] == most[ i ][ 1 ] \
-                     and self.urls[ u[ 0 ] ][ 'time' ] > self.urls[ most[ i ][ 0 ] ][ 'time' ]:
-                        # copy to next rank
-                        if i < amount:
-                            most[ i + 1 ] = most[ i ]
-                        # new top entry?
-                        if i == 1:
-                            most[ i ] = u
-                        # shift to next
-                        i -= 1
-                    else:
-                        # possibly fill up the empty spaces
-                        if i < amount:
-                            most[ i+1 ] = u
-                        # break
-                        i = 0
-            # fetch next entry
-            if len( urls ) > 0:
-                u = urls.popitem()
-            else:
-                u = None
+        if amount > len( self.urls ):
+            amount = len( self.urls )
+        if amount > 0:
+            # map urls -> no. of references
+            for k, v in self.urls.items():
+                urls[ k ] = v[ 'count' ]
+            # fetch the first entry
+            u = urls.popitem()
+            while u:
+                i = len( most )
+                if i == 0:
+                    # the very first one ;)
+                    most[ 1 ] = u
+                else:
+                    while i > 0:
+                        # more references?
+                        if u[ 1 ] > most[ i ][ 1 ]:
+                            # copy to next rank
+                            if i < amount:
+                                most[ i + 1 ] = most[ i ]
+                            # new top entry?
+                            if i == 1:
+                                most[ i ] = u
+                            # shift to next
+                            i -= 1
+                        # newer?
+                        elif u[ 1 ] == most[ i ][ 1 ] \
+                         and self.urls[ u[ 0 ] ][ 'time' ] > self.urls[ most[ i ][ 0 ] ][ 'time' ]:
+                            # copy to next rank
+                            if i < amount:
+                                most[ i + 1 ] = most[ i ]
+                            # new top entry?
+                            if i == 1:
+                                most[ i ] = u
+                            # shift to next
+                            i -= 1
+                        else:
+                            # possibly fill up the empty spaces
+                            if i < amount:
+                                most[ i+1 ] = u
+                            # break
+                            i = 0
+                # fetch next entry
+                if len( urls ) > 0:
+                    u = urls.popitem()
+                else:
+                    u = None
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostUsedWords( self, amount=10 ):
+        """which words were used most often?
+           (compare to mostActiveNicks)
+        """
+        words = {}
+        most  = {}
+        if amount > len( self.words ):
+            amount = len( self.words )
+        if amount > 0:
+            # map words -> no. of references
+            for k, v in self.words.items():
+                words[ k ] = v[ 'count' ]
+            # fetch the first entry
+            w = words.popitem()
+            while w:
+                i = len( most )
+                if i == 0:
+                    # the very first one ;)
+                    most[ 1 ] = w
+                else:
+                    while i > 0:
+                        # more references?
+                        if w[ 1 ] > most[ i ][ 1 ]:
+                            # copy to next rank
+                            if i < amount:
+                                most[ i + 1 ] = most[ i ]
+                            # new top entry?
+                            if i == 1:
+                                most[ i ] = w
+                            # shift to next
+                            i -= 1
+                        # newer?
+                        elif w[ 1 ] == most[ i ][ 1 ] \
+                         and self.words[ w[ 0 ] ][ 'time' ] > self.words[ most[ i ][ 0 ] ][ 'time' ]:
+                            # copy to next rank
+                            if i < amount:
+                                most[ i + 1 ] = most[ i ]
+                            # new top entry?
+                            if i == 1:
+                                most[ i ] = w
+                            # shift to next
+                            i -= 1
+                        else:
+                            # possibly fill up the empty spaces
+                            if i < amount:
+                                most[ i+1 ] = w
+                            # break
+                            i = 0
+                # fetch next entry
+                if len( words ) > 0:
+                    w = words.popitem()
+                else:
+                    w = None
         return most
 
 
@@ -1106,6 +1197,8 @@ class ircLogHtml( ircLog ):
     def mostActiveNicks( self, amount=10 ):
         """see ircLog
         """
+        if amount > len( self.nicks ):
+            amount = len( self.nicks )
         html = """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
@@ -1150,6 +1243,11 @@ class ircLogHtml( ircLog ):
         """prints a list of nicks and the number of their messages,
            optionally an offset can be provided
         """
+        if amount+offset > len( self.nicks ):
+            if offset > len( self.nicks ):
+                amount = 0
+            else:
+                amount = len( self.nicks )-offset
         html = """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
@@ -1790,6 +1888,8 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
     def mostReferencedNicks( self, amount=10 ):
         """see ircLog
         """
+        if amount > len( self.nickRefs ):
+            amount = len( self.nickRefs )
         html = """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
@@ -1833,6 +1933,8 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
     def mostReferencedUrls( self, amount=10 ):
         """see ircLog
         """
+        if amount > len( self.urls ):
+            amount = len( self.urls )
         html = """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
@@ -1869,6 +1971,51 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         <td align="right" class="data" valign="top" width="200">%s</td>
     </tr>
 """ % ( k, v[0], v[0], v[1], self.urls[ v[0] ][ 'nick' ], formatMyTime( self.urls[ v[0] ][ 'time' ] ) )
+        return html + "</table>"
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def mostUsedWords( self, amount=10 ):
+        """see ircLog
+        """
+        if amount > len( self.words ):
+            amount = len( self.words )
+        html = """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
+    <tr>
+        <th align="center" class="header_2" colspan="9">
+%d &nbsp; M O S T &nbsp; U S E D &nbsp; W O R D S
+        </th>
+    </tr>
+    <tr>
+        <th align="center" class="header_3" width="15">#</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3">Word</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3" width="25">Uses</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3" width="175">Last Used By</th>
+        <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <th align="center" class="header_3" width="200">When</th>
+    </tr>
+""" % amount
+        for k, v in ircLog.mostUsedWords( self, amount ).items():
+            html += """
+    <tr>
+        <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+    </tr>
+    <tr>
+        <td align="right" class="data" valign="top" width="15">%d.</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="left" class="data" valign="top"><a href="%s" target="_blank">%s</a></td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="right" class="data" valign="top" width="25">%d</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="left" class="data" valign="top" width="175">%s</td>
+        <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="right" class="data" valign="top" width="200">%s</td>
+    </tr>
+""" % ( k, v[0], v[0], v[1], self.words[ v[0] ][ 'nick' ], formatMyTime( self.words[ v[0] ][ 'time' ] ) )
         return html + "</table>"
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -1935,9 +2082,9 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
     <body bgcolor="#000000" text="#aaaaaa" link="#ffffee" alink="#ffffee" vlink="#ffffee">
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
-        <td align="center" class="border_1" rowspan="17" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="center" class="border_1" rowspan="19" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="center" class="border_1" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <td align="center" class="border_1" rowspan="17" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
+        <td align="center" class="border_1" rowspan="19" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
         <th align="center" class="header_1">
@@ -1959,6 +2106,7 @@ stats for %s on %s - generated by %s
         html += self.printPluginBox( self.mostActiveNicks( 25 ) )
         html += self.printPluginBox( self.notSoActiveNicks( 50, 25 ) )
         html += self.printPluginBox( self.interestingNumbers() )
+        html += self.printPluginBox( self.mostUsedWords( 10 ) )
         html += self.printPluginBox( self.mostReferencedNicks( 10 ) )
         html += self.printPluginBox( self.mostReferencedUrls( 25 ) )
 
