@@ -431,8 +431,9 @@ class ircLog:
         """return a dict of the nicks asking the most questions,
            keys are the "activity"-rank
         """
-        nicks = {}
-        most  = {}
+        amount = 2
+        nicks  = {}
+        most   = {}
         # map nick -> no. of posts
         for k, v in self.questions.items():
             nicks[ k ] = v / len( self.byNick[ k ] )
@@ -457,7 +458,7 @@ class ircLog:
                         i -= 1
                     else:
                         # possibly fill up the empty spaces
-                        if i < 2:
+                        if i < amount:
                             most[ i+1 ] = n
                         # break
                         i = 0
@@ -825,6 +826,7 @@ not enough nicks visited this channel
     def mostQuestions( self ):
         """see ircLog
         """
+        q = ircLog.mostQuestions( self )
         return """
 <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
     <tr>
@@ -834,7 +836,7 @@ not enough nicks visited this channel
         <td align="left">%s didn't know much either - %d%% </td>
     </tr>
 </table>
-""" % ircLog.mostQuestions( self )
+""" % ( q[ 0 ][ 0 ], q[ 0 ][ 1 ], q[ 1 ][ 0 ], q[ 1 ][ 1 ] )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
