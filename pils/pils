@@ -770,6 +770,7 @@ class ircLog:
             tw += w
             tm += msgs
             if msgs >= minMsgs:
+                print "%s: %d / %d -> %f"
                 nicks[ k ] = float( w / msgs )
         # fetch the first entry
         n = nicks.popitem()
