@@ -806,6 +806,60 @@ class ircLog:
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+    def mostWords( self ):
+        """return a dict of the nick who has writing the most words
+           and the channel average
+        """
+        minMsgs = 10
+        amount  =  1
+        nicks   = {}
+        most    = {}
+        tw      =  0
+        tn      =  0
+        # map nick -> no. of posts
+        for k, v in self.byNick.items():
+            w = 0
+            for l in v.values():
+                w += countWords( l )
+            tw += w
+            tn += 1
+            if msgs > minMsgs:
+                nicks[ k ] = w
+        # fetch the first entry
+        n = nicks.popitem()
+        while n:
+            i = len( most )
+            if i == 0:
+                # the very first one ;)
+                most[ 1 ] = n
+            else:
+                while i > 0:
+                    # more posts?
+                    if n[ 1 ] > most[ i ][ 1 ]:
+                        # copy to next rank
+                        if i < amount:
+                            most[ i + 1 ] = most[ i ]
+                        # new top entry?
+                        if i == 1:
+                            most[ i ] = n
+                        # shift to next
+                        i -= 1
+                    else:
+                        # possibly fill up the empty spaces
+                        if i < amount:
+                            most[ i+1 ] = n
+                        # break
+                        i = 0
+            # fetch next entry
+            if len( nicks ) > 0:
+                n = nicks.popitem()
+            else:
+                n = None
+        most[ 2 ] = list( ( self.channel, float( tw ) / float( tn ) ) )
+        return most
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
     def mostActiveMinutes( self ):
         """which minutes were the most busy ones?
         """
@@ -1305,6 +1359,27 @@ It seems that %s's shift-key is hanging: %.1f%% of the time he/she wrote UPPERCA
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
+    def mostWords( self ):
+        """see ircLog
+        """
+        w = ircLog.mostWords( self )
+        return """
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
+    <tr>
+        <th align="left" class="data" valign="top">
+%s had the most to say - he/she used %d words.
+        </th>
+    </tr>
+    <tr>
+        <td align="left" class="data" valign="top">
+%s average was %.1f words.
+        </td>
+    </tr>
+</table>
+""" % ( w[ 1 ][ 0 ], w[ 1 ][ 1 ], w[ 2 ][ 0 ], w[ 2 ][ 1 ] )
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
     def interestingNumbers( self ):
         """a bunch of interesting numbers
         """
@@ -1327,7 +1402,7 @@ S O M E &nbsp; I N T E R E S T I N G &nbsp; N U M B E R S
 </table>
 """ % ( self.mostQuestions() + self.mostYelling() + self.mostShouting()
       + self.mostHappyFaces() + self.mostSadFaces()
-      + self.longestLines() + self.wordsPerLine()
+      + self.longestLines() + self.wordsPerLine() + self.mostWords()
       )
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
