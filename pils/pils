@@ -735,13 +735,8 @@ N O T &nbsp; SO &nbsp; A C T I V E &nbsp; N I C K S
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
 """
                 html += """
-        <td align="center" class="data" valign="top">
-            <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%%">
-                <tr>
-                    <td align="left" class="data" valign="top">%s</td>
-                    <td align="right" class="data" valign="top">%d</td>
-                </tr>
-            </table>
+        <td align="left" class="data" valign="top">
+%s (%d)
         </td>
 """ % ( v[0], v[1] )
                 if i % 5 == 4:
