@@ -472,7 +472,7 @@ class ircLog:
         # map nick -> no. of posts
         for k, v in self.questions.items():
             msgs = len( self.byNick[ k ] )
-            if msgs >= minMsgs:
+            if msgs > minMsgs:
                 nicks[ k ] = 100.0 * v / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
@@ -519,7 +519,7 @@ class ircLog:
         # map nick -> no. of posts
         for k, v in self.yelling.items():
             msgs = len( self.byNick[ k ] )
-            if msgs >= minMsgs:
+            if msgs > minMsgs:
                 nicks[ k ] = 100.0 * v / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
@@ -566,7 +566,7 @@ class ircLog:
         # map nick -> no. of posts
         for k, v in self.shouting.items():
             msgs = len( self.byNick[ k ] )
-            if msgs >= minMsgs:
+            if msgs > minMsgs:
                 nicks[ k ] = 100.0 * v / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
@@ -613,7 +613,7 @@ class ircLog:
         # map nick -> no. of posts
         for k, v in self.happy.items():
             msgs = len( self.byNick[ k ] )
-            if msgs >= minMsgs:
+            if msgs > minMsgs:
                 nicks[ k ] = 100.0 * v / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
@@ -660,7 +660,7 @@ class ircLog:
         # map nick -> no. of posts
         for k, v in self.sad.items():
             msgs = len( self.byNick[ k ] )
-            if msgs >= minMsgs:
+            if msgs > minMsgs:
                 nicks[ k ] = 100.0 * v / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
@@ -714,7 +714,7 @@ class ircLog:
                 c += len( l )
             tc += c
             tm += msgs
-            if msgs >= minMsgs:
+            if msgs > minMsgs:
                 nicks[ k ] = float( c ) / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
@@ -769,7 +769,7 @@ class ircLog:
                 w += countWords( l )
             tw += w
             tm += msgs
-            if msgs >= minMsgs:
+            if msgs > minMsgs:
                 nicks[ k ] = float( w ) / float( msgs )
         # fetch the first entry
         n = nicks.popitem()
