@@ -1384,12 +1384,12 @@ M O S T &nbsp; A C T I V E &nbsp; W E E K D A Y S
                 html += """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
 """
-            percentage = int( self.byWeekday[ d ] * 100 / total )
+            percentage = 100.0 * self.byWeekday[ d ] / total
             html += """
         <td align="center" class="data" valign="bottom">
             <table align="center" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td align="center">%d %%</td>
+                    <td align="center">%.1f %%</td>
                 </tr>
                 <tr>
                     <td align="center" valign="bottom">
@@ -1402,7 +1402,7 @@ M O S T &nbsp; A C T I V E &nbsp; W E E K D A Y S
                 </tr>
             </table>
         </td>
-""" % ( percentage, percentage )
+""" % ( percentage, math.ceil( percentage ) )
 
         html += """
     </tr>
@@ -1451,7 +1451,7 @@ M O S T &nbsp; A C T I V E &nbsp; M I N U T E S
         for m in range( 60 ):
             total += self.byMinute[ m ]
         for m in range( 60 ):
-            percentage = int( self.byMinute[ m ] * 100 / total )
+            percentage = 100.0 * self.byMinute[ m ] / total
             if m > 0:
                 html += """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
@@ -1470,7 +1470,7 @@ M O S T &nbsp; A C T I V E &nbsp; M I N U T E S
                 </tr>
             </table>
         </td>
-""" % ( percentage )
+""" % ( math.ceil( percentage ) )
 
         html += """
     </tr>
@@ -1519,7 +1519,7 @@ M O S T &nbsp; A C T I V E &nbsp; H O U R S
         for h in range( 24 ):
             total += self.byHour[ h ]
         for h in range( 24 ):
-            percentage = int( self.byHour[ h ] * 100 / total )
+            percentage = 100.0 * self.byHour[ h ] / total
             if h > 0:
                 html += """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
@@ -1528,7 +1528,7 @@ M O S T &nbsp; A C T I V E &nbsp; H O U R S
         <td align="center" class="data" valign="bottom">
             <table align="center" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td align="center">%d %%</td>
+                    <td align="center">%.1f %%</td>
                 </tr>
                 <tr>
                     <td align="center" valign="bottom">
@@ -1541,7 +1541,7 @@ M O S T &nbsp; A C T I V E &nbsp; H O U R S
                 </tr>
             </table>
         </td>
-""" % ( percentage, percentage )
+""" % ( percentage, math.ceil( percentage ) )
 
         html += """
     </tr>
@@ -1590,7 +1590,7 @@ M O S T &nbsp; A C T I V E &nbsp; D A Y S
         for d in range( 31 ):
             total += self.byDay[ d ]
         for d in range( 31 ):
-            percentage = int( self.byDay[ d ] * 100 / total )
+            percentage = 100.0 * self.byDay[ d ] / total
             if d > 0:
                 html += """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
@@ -1599,7 +1599,7 @@ M O S T &nbsp; A C T I V E &nbsp; D A Y S
         <td align="center" class="data" valign="bottom">
             <table align="center" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td align="center">%d %%</td>
+                    <td align="center">%.1f %%</td>
                 </tr>
                 <tr>
                     <td align="center" valign="bottom">
@@ -1612,7 +1612,7 @@ M O S T &nbsp; A C T I V E &nbsp; D A Y S
                 </tr>
             </table>
         </td>
-""" % ( percentage, percentage )
+""" % ( percentage, math.ceil( percentage ) )
 
         html += """
     </tr>
@@ -1661,7 +1661,7 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         for m in range( 12 ):
             total += self.byMonth[ m ]
         for m in range( 12 ):
-            percentage = int( self.byMonth[ m ] * 100 / total )
+            percentage = 100.0 * self.byMonth[ m ] / total
             if m > 0:
                 html += """
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
@@ -1670,7 +1670,7 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
         <td align="center" class="data" valign="bottom">
             <table align="center" border="0" cellpadding="0" cellspacing="0">
                 <tr>
-                    <td align="center">%d %%</td>
+                    <td align="center">%.1f %%</td>
                 </tr>
                 <tr>
                     <td align="center" valign="bottom">
@@ -1683,7 +1683,7 @@ M O S T &nbsp; A C T I V E &nbsp; M O N T H S
                 </tr>
             </table>
         </td>
-""" % ( percentage, percentage )
+""" % ( percentage, math.ceil( percentage ) )
 
         html += """
     </tr>
