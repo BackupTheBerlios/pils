@@ -823,7 +823,7 @@ class ircLog:
                 w += countWords( l )
             tw += w
             tn += 1
-            if msgs > minMsgs:
+            if len( v ) > minMsgs:
                 nicks[ k ] = w
         # fetch the first entry
         n = nicks.popitem()
