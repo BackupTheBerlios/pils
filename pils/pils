@@ -1295,9 +1295,13 @@ class ircLogHtml( ircLog ):
         if msgs:
             activity = {}
             average  = self.numOfMsgs / len( self.nicks ) # / 24 / daysDiffMyTime( self.firstMsg, self.lastMsg ) + 1
+            if nick == 'nikl':
+                print 'avg: %s ( %s / %s )' % ( average, self.numOfMsgs, len( self.nicks ) )
             for i in range( 24 ):
                 activity[ i ] = 0
             total = len( msgs )
+            if nick == 'nikl':
+                print 'total: %s' % total
             for k in msgs.keys():
                 activity[ int( k[ 8:10 ] ) ] += 1
 #            html = """
@@ -1307,7 +1311,8 @@ class ircLogHtml( ircLog ):
 #"""
             for i in range( 24 ):
                 h = activity[ i ] / total + (total / average)
-
+                if nick == 'nikl':
+                    print '%s: %s -> %s' % ( i, activity[ i ], h )
                 activity[ i ] = h
             return """
 <img src="%s" alt="" border="0" height="20" width="48" />
