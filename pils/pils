@@ -1723,15 +1723,15 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S
         </th>
     </tr>
     <tr>
-        <th align="center" class="header_3">#</th>
+        <th align="center" class="header_3" width="15">#</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3">Nick</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3">Ref's</th>
+        <th align="center" class="header_3" width="25">Ref's</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3">Last Referenced By</th>
+        <th align="center" class="header_3" width="125">Last Referenced By</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3">When</th>
+        <th align="center" class="header_3" width="100">When</th>
     </tr>
 """
         for k, v in ircLog.mostReferencedNicks(self, amount ).items():
@@ -1740,15 +1740,15 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S
         <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
-        <td align="right" class="data" valign="top">%d.</td>
+        <td align="right" class="data" valign="top" width="15">%d.</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="left" class="data" valign="top">%s</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <td align="right" class="data" valign="top">%d</td>
+        <td align="right" class="data" valign="top" width="25">%d</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <td align="left" class="data" valign="top">%s</td>
+        <td align="left" class="data" valign="top" width="125">%s</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-	<td align="right" class="data" valign="top">%s</td>
+        <td align="right" class="data" valign="top" width="100">%s</td>
     </tr>
 """ % ( k, v[0], v[1], self.nickRefs[ v[0] ][ 'nick' ], formatMyTime( self.nickRefs[ v[0] ][ 'time' ] ) )
         return html + "</table>"
@@ -1766,32 +1766,32 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; U R L S
         </th>
     </tr>
     <tr>
-        <th align="center" class="header_3">#</th>
+        <th align="center" class="header_3" width="15">#</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3">Url</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3">Ref's</th>
+        <th align="center" class="header_3" width="25">Ref's</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3">Last Referenced By</th>
+        <th align="center" class="header_3" width="125">Last Referenced By</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3">When</th>
+        <th align="center" class="header_3" width="100">When</th>
     </tr>
 """
-        for k, v in ircLog.mostReferencedUrls(self, amount ).items():
+        for k, v in ircLog.mostReferencedUrls( self, amount ).items():
             html += """
     <tr>
         <td align="center" class="border_2" colspan="9" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
     </tr>
     <tr>
-        <td align="right" class="data" valign="top">%d.</td>
+        <td align="right" class="data" valign="top" width="15">%d.</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="left" class="data" valign="top"><a href="%s" target="_blank">%s</a></td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <td align="right" class="data" valign="top">%d</td>
+        <td align="right" class="data" valign="top" width="25">%d</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <td align="left" class="data" valign="top">%s</td>
+        <td align="left" class="data" valign="top" width="125">%s</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-	<td align="right" class="data" valign="top">%s</td>
+        <td align="right" class="data" valign="top" width="100">%s</td>
     </tr>
 """ % ( k, v[0], v[0], v[1], self.urls[ v[0] ][ 'nick' ], formatMyTime( self.urls[ v[0] ][ 'time' ] ) )
         return html + "</table>"
@@ -1858,7 +1858,7 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; U R L S
         </style>
     </head>
     <body bgcolor="#000000" text="#aaaaaa" link="#ffffee" alink="#ffffee" vlink="#ffffee">
-<table align="center" border="0" cellpadding="0" cellspacing="0">
+<table align="center" border="0" cellpadding="0" cellspacing="0" width="100%">
     <tr>
         <td align="center" class="border_1" rowspan="17" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="center" class="border_1" height="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
