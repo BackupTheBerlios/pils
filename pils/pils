@@ -1729,9 +1729,9 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3" width="25">Ref's</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3" width="125">Last Referenced By</th>
+        <th align="center" class="header_3" width="175">Last Referenced By</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3" width="100">When</th>
+        <th align="center" class="header_3" width="200">When</th>
     </tr>
 """
         for k, v in ircLog.mostReferencedNicks(self, amount ).items():
@@ -1746,9 +1746,9 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; N I C K S
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="right" class="data" valign="top" width="25">%d</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <td align="left" class="data" valign="top" width="125">%s</td>
+        <td align="left" class="data" valign="top" width="175">%s</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <td align="right" class="data" valign="top" width="100">%s</td>
+        <td align="right" class="data" valign="top" width="200">%s</td>
     </tr>
 """ % ( k, v[0], v[1], self.nickRefs[ v[0] ][ 'nick' ], formatMyTime( self.nickRefs[ v[0] ][ 'time' ] ) )
         return html + "</table>"
@@ -1772,9 +1772,9 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; U R L S
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <th align="center" class="header_3" width="25">Ref's</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3" width="125">Last Referenced By</th>
+        <th align="center" class="header_3" width="175">Last Referenced By</th>
         <td align="center" class="border_2" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <th align="center" class="header_3" width="100">When</th>
+        <th align="center" class="header_3" width="200">When</th>
     </tr>
 """
         for k, v in ircLog.mostReferencedUrls( self, amount ).items():
@@ -1789,9 +1789,9 @@ M O S T &nbsp; R E F E R E N C E D &nbsp; U R L S
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
         <td align="right" class="data" valign="top" width="25">%d</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <td align="left" class="data" valign="top" width="125">%s</td>
+        <td align="left" class="data" valign="top" width="175">%s</td>
         <td align="center" class="border_3" width="1"><img src="/gfx/pixel.gif" alt="" border="0" height="1" width="1" /></td>
-        <td align="right" class="data" valign="top" width="100">%s</td>
+        <td align="right" class="data" valign="top" width="200">%s</td>
     </tr>
 """ % ( k, v[0], v[0], v[1], self.urls[ v[0] ][ 'nick' ], formatMyTime( self.urls[ v[0] ][ 'time' ] ) )
         return html + "</table>"
