@@ -41,8 +41,8 @@ class pilsImage:
         elif y1 > y2:
             self.drawBox( x1, y2, x2, y1, color )
         else:
-            for x in range( x1, x2+1 ):
-                for y in range( y1, y2+1 ):
+            for x in range( math.floor( x1 ), math.ceil( x2+1 ) ):
+                for y in range( math.floor( y1 ), math.ceil( y2+1 ) ):
                     self.draw( x, y, color )
 
     def save( self, path ):
